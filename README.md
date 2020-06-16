@@ -1,6 +1,6 @@
 # wfb's blog
 
-> https://github.com/FubinSama/blog/
+> https://fubinsama.github.io/blog
 
 ## Hello World
 ```html
