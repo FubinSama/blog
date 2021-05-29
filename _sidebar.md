@@ -3,4 +3,3 @@
     - [B+树主键索引.png](././mysql/images/B%2B树主键索引.png)
     - [B+树二级索引.png](././mysql/images/B%2B树二级索引.png)
     - [B+树聚合索引.png](././mysql/images/B%2B树聚合索引.png)
-  - [mysql基础讲座笔记](././mysql/mysql基础讲座笔记.md)
