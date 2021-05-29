@@ -67,16 +67,15 @@ ps：**当二级索引的区分度(该列不同值的数量/该列的总记录)�
 
 定义如下函数：
 
-`search_eq(index, x)`：在该索引index树下查询索引值等于x的叶子节点
-`search_max_lt(index, x)`：在该索引index树下查询索引值最大的小于x的叶子节点
-`search_max_leq(index, x)`：在该索引index树下查询索引值最大的小于等于x的叶子节点
-`search_min_gt(index, x)`：在该索引index树下查询索引值最小的大于x的叶子节点
-`search_min_geq(index, x)`：在该索引index树下查询索引值最小的大于等于x的叶子节点
-`traverse_node(st_node, ed_node, func)`：在叶子节点依靠其双向链表遍历st_node到ed_node的所有记录，返回满足func函数的记录。func函数的形式为`func(node): bool`,传入该叶子节点，返回值为bool类型，表示该节点是否满足条件。
-
-使用`head_<index>`表示该索引叶子节点的第一个元素
-使用`tail_<index>`表示该索引叶子节点的最后一个元素
-将最后得到的结果赋值给`res`
+- `search_eq(index, x)`：在该索引index树下查询索引值等于x的叶子节点
+- `search_max_lt(index, x)`：在该索引index树下查询索引值最大的小于x的叶子节点
+- `search_max_leq(index, x)`：在该索引index树下查询索引值最大的小于等于x的叶子节点
+- `search_min_gt(index, x)`：在该索引index树下查询索引值最小的大于x的叶子节点
+- `search_min_geq(index, x)`：在该索引index树下查询索引值最小的大于等于x的叶子节点
+- `traverse_node(st_node, ed_node, func)`：在叶子节点依靠其双向链表遍历st_node到ed_node的所有记录，返回满足func函数的记录。func函数的形式为`func(node): bool`,传入该叶子节点，返回值为bool类型，表示该节点是否满足条件。
+- 使用`head_<index>`表示该索引叶子节点的第一个元素
+- 使用`tail_<index>`表示该索引叶子节点的最后一个元素
+- 将最后得到的结果赋值给`res`
 
 请描述下列语句的执行算法：
 
