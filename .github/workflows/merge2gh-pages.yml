@@ -38,7 +38,7 @@ jobs:
         run: bash ./sidebar.sh
         
       - name: commit the update
-        run: ([ -z $(git status -s) ]] || git commit -am 'generate sidebar.md')
+        run: ([[ -z $(git status -s) ]] || git commit -am 'generate sidebar.md')
         
       - name: push the result
         run: git push
