@@ -33,6 +33,12 @@ jobs:
         
       - name: merge master
         run: git merge origin/master -m '合并'
-          
+        
+      - name: generate _sidebar.md
+        run: sh sidebar.sh
+        
+      - name: commit the update
+        run: git commit -am '重新生成侧边栏'
+        
       - name: push the result
         run: git push
