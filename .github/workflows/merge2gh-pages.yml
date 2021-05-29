@@ -27,7 +27,7 @@ jobs:
           ref: gh-pages
         
       - name: merge master
-        run: git merge master -m '合并'
+        run: git merge origin/master -m '合并'
           
       - name: push the result
         run: git push
