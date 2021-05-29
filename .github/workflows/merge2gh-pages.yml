@@ -34,14 +34,11 @@ jobs:
       - name: merge master
         run: git merge origin/master -m '合并'
       
-      - name: push the merge
-        run: git push
-      
       - name: generate _sidebar.md
         run: bash ./sidebar.sh
         
       - name: commit the update
-        run: git commit -am '重新生成侧边栏'
+        run: ([[ -z $(git status -s) ]] || git commit -am 'generate sidebar.md')
         
-      - name: push the sidebar
+      - name: push the result
         run: git push
