@@ -1,2 +1,0 @@
-- mysql
-  - [mysql基础讲座笔记](././mysql/mysql基础讲座笔记.md)
