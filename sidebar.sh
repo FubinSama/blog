@@ -1,5 +1,6 @@
 #!/bin/bash
-ignore_dir_reg=".*/images.*"
+# 自动生成_sidebar.md文件脚本
+ignore_dir_reg=".*/images.*" # 忽略添加的文件夹正则
 IFS=$(echo -en "\n\b")
 function getdir(){
     for element in `ls -1 $1`; do
