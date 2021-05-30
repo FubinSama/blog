@@ -1,5 +1,9 @@
 - mysql
+  - [MySQL基础讲座笔记](././mysql/MySQL基础讲座笔记.md)
   - images
     - [B+树主键索引.png](././mysql/images/B%2B树主键索引.png)
     - [B+树二级索引.png](././mysql/images/B%2B树二级索引.png)
     - [B+树聚合索引.png](././mysql/images/B%2B树聚合索引.png)
+    - [Innodb索引存储的段页式图.png](././mysql/images/Innodb索引存储的段页式图.png)
+    - [innodb-architecture.png](././mysql/images/innodb-architecture.png)
+    - [mysql-architecture.png](././mysql/images/mysql-architecture.png)
