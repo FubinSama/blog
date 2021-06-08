@@ -16,12 +16,23 @@
         - [索引数量是否越多越好?](#索引数量是否越多越好)
         - [如何检查自己写的SQL是否有性能问题？](#如何检查自己写的sql是否有性能问题)
         - [MySQL InnoDB 擅⻓的场景](#mysql-innodb-擅的场景)
-    - [Hash索引](#hash索引)
+    - [自适应Hash索引](#自适应hash索引)
+    - [全文索引](#全文索引)
   - [数据安全](#数据安全)
     - [对系统的基本要求](#对系统的基本要求)
     - [系统环境的各种异常和不稳定因素](#系统环境的各种异常和不稳定因素)
     - [如何处理各种异常因素](#如何处理各种异常因素)
     - [为何MySQL InnoDB是比较靠谱的选择](#为何mysql-innodb是比较靠谱的选择)
+    - [内存为虚,落盘为实](#内存为虚落盘为实)
+    - [用Redo Log和Checkpoint恢复脏页数据](#用redo-log和checkpoint恢复脏页数据)
+      - [Redo Log](#redo-log)
+      - [Checkpoint](#checkpoint)
+      - [应对非原子写的Double Write机制](#应对非原子写的double-write机制)
+        - [尴尬的「写数据写了一半」](#尴尬的写数据写了一半)
+        - [Double Write](#double-write)
+        - [应用Double Write进行数据恢复](#应用double-write进行数据恢复)
+        - [Double Write机制不是必须的](#double-write机制不是必须的)
+        - [其他家的产品是怎么做的](#其他家的产品是怎么做的)
   - [事务和一致性](#事务和一致性)
 
 先贴两张从官网download的图，它们分别是MySQL存储引擎架构和InnoDB架构图：
@@ -226,7 +237,13 @@ ps：**当二级索引的区分度(该列不同值的数量/该列的总记录)�
   - 数据吞吐量特别大的计算任务(例如典型的大数据离线计算);
   - 非常强调写性能、但不要求ACID事务支持的应用场景(例如一些常⻅的互联网应用);
 
-### Hash索引
+### 自适应Hash索引
+
+它是由数据库自身根据你的使用情况创建的，并不能人为的干预，所以叫作自适应哈希索引，采用的是哈希表数据结构，所以对于字典类型的查询就非常的快，但是对于范围查询就无能为力啦。
+
+### 全文索引
+
+全文索引是一种比较特殊的索引，一般都是基于倒排索引来实现的，es 也是使用倒排索引。倒排索引跟 B-Tree 索引一样也是一种数据结构，在辅助表中存储了单词与单词自身在一个或多个文档中所在位置的映射。专门用来优化`select * from blog where content like '%xxxx%'`之类的查询语句。
 
 ## 数据安全
 
@@ -280,5 +297,97 @@ ps：**当二级索引的区分度(该列不同值的数量/该列的总记录)�
 另外，还要考虑方法的成本代价。**最高级别的技术事故，一定是数据事故。**所以必须要选择一个十分靠谱的数据存储系统方案。
 
 ### 为何MySQL InnoDB是比较靠谱的选择
+
+MySQL提供了`Redo Log`、`Double Write`、`Undo Log`、`Bin Log`等技术来保证数据的存储安全性。
+
+### 内存为虚,落盘为实
+
+让我们先认识一下`Buffer Pool`，它是一个大型的内存数据缓存池，主要作用是保存热点数据，减少磁盘IO,减速数据的访问和修改。
+
+其主要特点如下：
+
+- 以页为单位存放和调度数据;
+- 主要使用LRU算法淘汰那些最久未被使用的页;
+- 加载数据时有预读机制（线性预读和随机预读）。
+
+![Buffer-Pool图](./images/Buffer-Pool图.png)
+
+我们在使用`select`、`update`等命令操作MySQL时，实际操作的是`Buffer Pool`中的数据，即操作的结果会在内存中。而 **任何数据，如果只在内存中，没有写入磁盘，都是易失的、不安全的**。再我们编程操作文件时，即使调用了`write`命令，实际上也不能保证内容写入到了磁盘，因为**操作系统也有I/O的缓冲机制**。只有通过调用`fsync`指令，才能强制立即将数据写入磁盘。另外，也可以使用`O_SYNC`或`O_DIRECT`打开文件，即`fd = open("myfile", O_DIRECT|O_SYNC)`，这样操作系统会保证我们每次写入的数据会立即刷入磁盘。
+频繁刷盘的主要不足之处是**性能不好**。，因而需要权衡：数据安全、性能和价格成本。
+
+![操作系统文件缓存架构图](./iamges/../images/操作系统文件.png)
+
+与之对应MySQL提供了不同的刷盘配置来确保日志文件的数据安全性，主要通过配置`innodb_flush_log_at_trx_commit`选项实现：
+
+取值|含义说明
+--|--
+0|大约每秒刷写一次各种log文件。如果有已提交(commit)的事务来不及刷写到磁盘中,万一mysql挂了,那这些事务数据极有可能就丢失了。
+1(默认值)|每当有事务提交(commit)时,确保各种log文件立即刷写到磁盘中(调用fsync)。事务数据丢失的概率比较低。
+2|每当有事务提交(commit)时,各种log文件会”写”出去,但没有调用fsync,而是等待mysql大约每隔一秒执行一次真正的刷写操作。期间如果有mysql挂了,没刷写到磁盘的事务数据极有可能就丢失了。
+
+![innodb_flush_log_at_trx_commit选项图](./images/innodb_flush_log_at_trx_commit选项图.png)
+
+通过图，我们可以很直观的得出结论：当该选项值为1时，可以保证log更准确的说是`redo log`的持久性（redo的持久性保证了事务的持久性，即保证了MySQL发生崩溃重启后可以恢复还未被写入到磁盘的脏页，具体的策略看后面的[用Redo Log和Checkpoint恢复脏页数据](#用redo-log和checkpoint恢复脏页数据)），此时受制于磁盘的I/O性能，会导致MySQL性能明显下降。而0和2能获得更高的性能。可以通过`select @@innodb_flush_log_at_trx_commit;`查询数据库该选项的配置值。
+
+### 用Redo Log和Checkpoint恢复脏页数据
+
+为了性能，InnoDB在执行更新命令时，并不立即把数据直接更新到磁盘，而是**先写入到内存的Buffer Pool中**，等一段时间后才真正刷写到磁盘。为了保证不丢失数据，MySQL使用了**WAL技术**（Write Ahead Log：先将事物的写操作记录到redo log文件，再处理数据），这也就意味着只要有一个合适的快照点（即`Checkpoint`）和在该点之后所做的全部写操作的日志（即`Redo Log`）就可以在数据库发生意外重启时，通过在快照点重新执行操作还原出已经commit的事务数据。
+
+#### Redo Log
+
+![RedoLog的数据结构](./images/RedoLog的数据结构.png)
+
+innodb_flush_log_at_trx_commit值为1时，执行一条更新SQL语句（如：UPDATE）的大致过程如下：
+
+1. 从内存`Buffer Pool`中找到相关的页，如果找不到就从磁盘数据文件中调出来;
+2. 直接在这些内存页上做数据修改，并标记为“脏页”（Dirty Page）;
+3. 生成一条对应的`Redo Log`，暂存到内存中的`Log Buffer`中;
+4. 如果遇到了`commit`指令，在执行该指令前，立即将`redo log`刷写到磁盘中;
+5. 内存中的脏页按照一定的机制，再之后分批次写入到磁盘。
+
+![执行一条更新SQL的大致过程图](./images/执行一条更新SQL的大致过程.png)
+
+#### Checkpoint
+
+![checkpoint图](./images/checkpoint.png)
+
+如下图所示,假设LSN(log sequence number)10000之前的脏⻚数据都已经刷写到了磁盘，那么MySQL在重启时只需要重做LSN 1000之后的redo log内容即可。
+
+![checkpoint数据恢复图](./images/checkpoint数据恢复.png)
+
+但是如果磁盘是非原子性写的，就有可能导致数据写入一半时崩掉了，为了解决这个问题，MySQL又引入了`Double Write`机制。
+
+#### 应对非原子写的Double Write机制
+
+##### 尴尬的「写数据写了一半」
+
+![部分写失效图](./images/部分写失效.png)
+
+##### Double Write
+
+MySQL在数据文件中设立一块2MB的特殊buffer区域(对于16KB大小的⻚,可一次存放128个⻚),相当于留了一个备份。
+
+1. 在刷写脏页数据的时候，先将数据拷贝(使用memcpy函数)到内存中的`Double Write`区域（这是一个被mmap声明的内存映射文件），并调用`msync`写入磁盘。
+2. 之后，再将这批页数据分别写入到应该写入的数据文件中。
+
+##### 应用Double Write进行数据恢复
+
+每个页都有checksum字段，因而我们可以通过算法来检查这页的数据是否完整。加入了`double write`后，可能出现如下几种情况：
+
+1. 如果`double write`和数据文件中的数据均完整且相同，则说明该`checkpoint`写入成功了或者还未开始写，那么直接用该`checkpoint`和其标识的`LSN`之后的`redo log`进行恢复即可。
+2. 如果`double write`中的数据检查`checksum`发现不完整，则说明在将数据拷贝到`double write`的过程中数据出错了，那么直接使用数据文件中的这个老版本`checkpoint`，使用其标识的`LSN`之后的`redo log`进行恢复。
+3. 如果`double write`和数据文件中的数据均完整但不相同，那说明刚完成了`double write`的写入，还未开始数据文件的写入，此时先将`double write`中的内容写入到数据文件，然后直接使用`double write`中的`checkpoint`，使用其标识的`LSN`号之后的`redo log`进行恢复。
+4. 如果`double write`中的数据完整，但数据文件的`checksum`不对，那说明完成了`double write`的写入后，再进行数据文件的写入时出错了，此时先将`double write`中的内容写入到数据文件，然后直接使用`double write`中的`checkpoint`，使用其标识的`LSN`号之后的`redo log`进行恢复。
+
+可以发现可能的5种情况（上面写的1中包含了两种情况）均可以成功用`checkpoint`和`redo log`恢复完整的数据。
+
+##### Double Write机制不是必须的
+
+ 如果底层存储设备支持原子性写(例如Fusion IO和PCIE SSD),或者底层文件系统支持原子写,那么double write机制可以取消。`Dobule Write`本质上就是为了让`checkpoint`的写入操作拥有原子性，MySQL默认会在不支持原子写的系统上开启`Double Write`，在支持的系统上关闭。
+
+##### 其他家的产品是怎么做的
+
+- PostgreSQL采用full page write的办法来解决部分写失效的问题(也就是直接粗暴地将整个⻚的数据写进WAL日志里)
+- Oracle本身有很多数据块的完整性校验机制,如果发生写失败就直接回滚
 
 ## 事务和一致性
