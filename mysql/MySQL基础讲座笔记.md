@@ -33,7 +33,13 @@
         - [应用Double Write进行数据恢复](#应用double-write进行数据恢复)
         - [Double Write机制不是必须的](#double-write机制不是必须的)
         - [其他家的产品是怎么做的](#其他家的产品是怎么做的)
+    - [`Undo Log`](#undo-log)
+    - [`Bin Log`](#bin-log)
+    - [数据更新操作时，`Redo Log`、`Undo Log`、`Bin Log`的操作时机](#数据更新操作时redo-logundo-logbin-log的操作时机)
   - [事务和一致性](#事务和一致性)
+    - [事务的ACID](#事务的acid)
+    - [Innodb事务的重要字段](#innodb事务的重要字段)
+    - [隔离级](#隔离级)
 
 先贴两张从官网download的图，它们分别是MySQL存储引擎架构和InnoDB架构图：
 
@@ -312,7 +318,7 @@ MySQL提供了`Redo Log`、`Double Write`、`Undo Log`、`Bin Log`等技术来�
 
 ![Buffer-Pool图](./images/Buffer-Pool图.png)
 
-我们在使用`select`、`update`等命令操作MySQL时，实际操作的是`Buffer Pool`中的数据，即操作的结果会在内存中。而 **任何数据，如果只在内存中，没有写入磁盘，都是易失的、不安全的**。再我们编程操作文件时，即使调用了`write`命令，实际上也不能保证内容写入到了磁盘，因为**操作系统也有I/O的缓冲机制**。只有通过调用`fsync`指令，才能强制立即将数据写入磁盘。另外，也可以使用`O_SYNC`或`O_DIRECT`打开文件，即`fd = open("myfile", O_DIRECT|O_SYNC)`，这样操作系统会保证我们每次写入的数据会立即刷入磁盘。
+我们在使用`select`、`update`等命令操作MySQL时，实际操作的是`Buffer Pool`中的数据，即操作的结果会在内存中。而 **任何数据，如果只在内存中，没有写入磁盘，都是易失的、不安全的**。在我们编程操作文件时，即使调用了`write`命令，实际上也不能保证内容写入到了磁盘，因为**操作系统也有I/O的缓冲机制**。只有通过调用`fsync`指令，才能强制立即将数据写入磁盘。另外，也可以使用`O_SYNC`或`O_DIRECT`打开文件，即`fd = open("myfile", O_DIRECT|O_SYNC)`，这样操作系统会保证我们每次写入的数据会立即刷入磁盘。
 频繁刷盘的主要不足之处是**性能不好**。，因而需要权衡：数据安全、性能和价格成本。
 
 ![操作系统文件缓存架构图](./iamges/../images/操作系统文件.png)
@@ -323,7 +329,7 @@ MySQL提供了`Redo Log`、`Double Write`、`Undo Log`、`Bin Log`等技术来�
 --|--
 0|大约每秒刷写一次各种log文件。如果有已提交(commit)的事务来不及刷写到磁盘中,万一mysql挂了,那这些事务数据极有可能就丢失了。
 1(默认值)|每当有事务提交(commit)时,确保各种log文件立即刷写到磁盘中(调用fsync)。事务数据丢失的概率比较低。
-2|每当有事务提交(commit)时,各种log文件会”写”出去,但没有调用fsync,而是等待mysql大约每隔一秒执行一次真正的刷写操作。期间如果有mysql挂了,没刷写到磁盘的事务数据极有可能就丢失了。
+2|每当有事务提交(commit)时,各种log文件会“写”入,但没有调用fsync,而是等待mysql大约每隔一秒执行一次真正的刷写操作。期间如果有mysql挂了,没刷写到磁盘的事务数据极有可能就丢失了。
 
 ![innodb_flush_log_at_trx_commit选项图](./images/innodb_flush_log_at_trx_commit选项图.png)
 
@@ -343,19 +349,24 @@ innodb_flush_log_at_trx_commit值为1时，执行一条更新SQL语句（如：U
 2. 直接在这些内存页上做数据修改，并标记为“脏页”（Dirty Page）;
 3. 生成一条对应的`Redo Log`，暂存到内存中的`Log Buffer`中;
 4. 如果遇到了`commit`指令，在执行该指令前，立即将`redo log`刷写到磁盘中;
-5. 内存中的脏页按照一定的机制，再之后分批次写入到磁盘。
+5. 内存中的脏页按照一定的机制，在之后分批次写入到磁盘。
 
 ![执行一条更新SQL的大致过程图](./images/执行一条更新SQL的大致过程.png)
 
+redo日志采用的`Physiological Logging`方式，其格式为：`(Page ID, Record Offset, (Filed1, Value1), ..., (Filedn, Valuen))`。其中`Page ID`指定要操作的Page页，`Record Offset`记录了该记录在页中的偏移量，后面的数组记录了需要修改的字段和修改后的值。由于这种日志记录格式，导致了两个问题：
+
+1. **需要基于正确的Page状态才能重放Redo**：InnoDB中采用了`Double Write Buffer`的方式来通过写两次的方式保证恢复的时候找到一个正确的Page状态。
+2. **需要保证Redo重放的幂等性**：`Double Write Buffer`能够保证找到一个正确的Page状态，我们还需要知道这个状态对应REDO上的哪个记录，来避免对Page的重复修改。为此，InnoDB给每个REDO记录一个全局唯一递增的标号`LSN(Log Sequence Number)`。**Page在修改时，会将对应的REDO记录的LSN记录在Page上（FIL_PAGE_LSN字段），这样恢复重放REDO时，就可以来判断跳过已经应用的REDO，从而实现重放的幂等。**
+
 #### Checkpoint
+
+保证了幂等性的`redo log`只要在一个正确的Page状态上重放就可以恢复数据库到正确的状态。但是，大量的redo日志会导致大量的存储开销和重放时的时间开销。为此`MySQL`引入了`Checkpoint`快照点机制。
 
 ![checkpoint图](./images/checkpoint.png)
 
 如下图所示,假设LSN(log sequence number)10000之前的脏⻚数据都已经刷写到了磁盘，那么MySQL在重启时只需要重做LSN 1000之后的redo log内容即可。
 
 ![checkpoint数据恢复图](./images/checkpoint数据恢复.png)
-
-但是如果磁盘是非原子性写的，就有可能导致数据写入一半时崩掉了，为了解决这个问题，MySQL又引入了`Double Write`机制。
 
 #### 应对非原子写的Double Write机制
 
@@ -374,7 +385,7 @@ MySQL在数据文件中设立一块2MB的特殊buffer区域(对于16KB大小的�
 
 每个页都有checksum字段，因而我们可以通过算法来检查这页的数据是否完整。加入了`double write`后，可能出现如下几种情况：
 
-1. 如果`double write`和数据文件中的数据均完整且相同，则说明该`checkpoint`写入成功了或者还未开始写，那么直接用该`checkpoint`和其标识的`LSN`之后的`redo log`进行恢复即可。
+1. 如果`double write`和数据文件中的数据均完整且相同，则说明该`checkpoint`写入成功了或者还未开始写，那么直接用该`checkpoint`和其标识的`LSN`之后的`redo log`进行恢复即可，幂等性的`Redo`日志不怕重做已做过的恢复。
 2. 如果`double write`中的数据检查`checksum`发现不完整，则说明在将数据拷贝到`double write`的过程中数据出错了，那么直接使用数据文件中的这个老版本`checkpoint`，使用其标识的`LSN`之后的`redo log`进行恢复。
 3. 如果`double write`和数据文件中的数据均完整但不相同，那说明刚完成了`double write`的写入，还未开始数据文件的写入，此时先将`double write`中的内容写入到数据文件，然后直接使用`double write`中的`checkpoint`，使用其标识的`LSN`号之后的`redo log`进行恢复。
 4. 如果`double write`中的数据完整，但数据文件的`checksum`不对，那说明完成了`double write`的写入后，再进行数据文件的写入时出错了，此时先将`double write`中的内容写入到数据文件，然后直接使用`double write`中的`checkpoint`，使用其标识的`LSN`号之后的`redo log`进行恢复。
@@ -390,4 +401,56 @@ MySQL在数据文件中设立一块2MB的特殊buffer区域(对于16KB大小的�
 - PostgreSQL采用full page write的办法来解决部分写失效的问题(也就是直接粗暴地将整个⻚的数据写进WAL日志里)
 - Oracle本身有很多数据块的完整性校验机制,如果发生写失败就直接回滚
 
+### `Undo Log`
+
+![undo_log_ppt](./images/undo_log_ppt.png)
+
+![undo_log_ppt2](./images/undo_log_ppt2.png)
+
+### `Bin Log`
+
+![bin_log_ptt](./images/bin_log_ptt.png)
+
+![bin_log_ppt2](./images/bin_log_ppt2.png)
+
+双向主从模式因为网络等原因会导致各种bug，不要使用。
+
+![bin_log_ppt3](./images/bin_log_ppt3.png)
+
+### 数据更新操作时，`Redo Log`、`Undo Log`、`Bin Log`的操作时机
+
+![数据更新时log的操作时机](./images/数据更新时log的操作时机.png)
+
 ## 事务和一致性
+
+### 事务的ACID
+
+- **Atomicity(原子性)**：一个事务要么全部执行成功,要么全部执行失败,不能只执行其中的一部分
+- **Consistency(一致性)**：数据库总是从一个一致性状态转换到另一个一致状态
+- **Isolation(隔离性)**：一个事务在最终提交以前,它所做的修改在一定程度上对其他事务是不可见的
+- **Durability(持久性)**：事务一旦提交,其所做的修改就会永久保存到数据库中。即使系统崩溃了,修改的数据也不会丢失
+
+事务特性|底层实现机制
+--|--
+原子性|Undo Log
+一致性|Undo Log版本链、MVCC非锁定读
+隔离性|加锁、MVCC
+持久性|Redo Log、内存页数据刷写到磁盘
+
+### Innodb事务的重要字段
+
+事务ID(trx_id)：
+
+- 是一个64位无符号整数,唯一标识一个事务;
+- 是递增的,新事务分配到的ID数值更大;
+- 每个行数据(row)中都含有一个trx_id属性字段,表明当前数据是从哪个事务修改得来的;
+- 每条undo log记录中都含有一个trx_id属性字段,表明当前版本对应哪个事务ID。
+
+### 隔离级
+
+隔离级别|说明|脏读|不可重复读|幻读
+--|---|--|--|--
+读未提交(READ UNCOMMITTED)|可能读到其他会话中未提交事务修改的数据|✓|✓|✓
+读已提交(READ COMMITTED)|只能读到已经提交的数据|✕|✓|✓
+可重复读(REPEATABLE READ)|可重复读，也就是在同一个事务内的查询结果和事务开始时刻一致。是InnoDB的默认等级|✕|✕|✓
+可串行化(SERIALIZABLE)|完全串行化的读，每次读都需要获得表级共享锁，读写相互都会阻塞|✕|✕|✕
