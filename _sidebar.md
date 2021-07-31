@@ -1,4 +1,10 @@
+- JAVA和Kotlin
+  - [JAVA基础](././JAVA和Kotlin/JAVA基础.md)
+  - [Kotlin基础](././JAVA和Kotlin/Kotlin基础.md)
 - mysql
   - [MySQL基础讲座笔记](././mysql/MySQL基础讲座笔记.md)
+- 支付相关
+  - [注意事项](././支付相关/注意事项.md)
+  - [签名相关的Kotlin模板](././支付相关/签名相关的Kotlin模板.md)
 - 读书笔记
   - [编码](././读书笔记/编码.md)
