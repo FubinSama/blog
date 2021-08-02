@@ -40,7 +40,7 @@ String s4 = "11";
 System.out.println(s3 == s4);
 ```
 
-JDK6时常量池存储在老年代，而对象存储在堆区，所以值为`false`、`false`，JDK7以后值为`false`、`true`。详见【https://tech.meituan.com/2014/03/06/in-depth-understanding-string-intern.html】。其实我也不太懂为什么。
+JDK6时常量池存储在老年代，而对象存储在堆区，所以值为`false`、`false`，JDK7以后值为`false`、`true`。详见【"https://tech.meituan.com/2014/03/06/in-depth-understanding-string-intern.html"】。其实我也不太懂为什么。
 
 ## 浮点数
 
