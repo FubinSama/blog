@@ -20,10 +20,48 @@
     - [7. Redis的发布订阅](././NoSQL/redis/7.%20Redis的发布订阅.md)
     - [8. Redis的主从复制](././NoSQL/redis/8.%20Redis的主从复制.md)
     - [9. Jedis的使用](././NoSQL/redis/9.%20Jedis的使用.md)
+- git
+  - [git](././git/git.md)
+  - [github](././git/github.md)
+  - [利用markdown写书](././git/利用markdown写书.md)
+- linux
+  - [ArchLinux常用命令](././linux/ArchLinux常用命令.md)
+  - [RabbitMQ常用命令](././linux/RabbitMQ常用命令.md)
+  - [centOS常用命令](././linux/centOS常用命令.md)
+  - [docker](././linux/docker.md)
+  - [mariadb](././linux/mariadb.md)
+  - [opensuse常用命令](././linux/opensuse常用命令.md)
+  - [安装ArchLinux](././linux/安装ArchLinux.md)
+  - [常用命令](././linux/常用命令.md)
+- maven
+  - [Sonatype_Nexus私服](././maven/Sonatype_Nexus私服.md)
+  - [maven概述](././maven/maven概述.md)
+  - [pom文件详解](././maven/pom文件详解.md)
+  - [一个简单的maven插件](././maven/一个简单的maven插件.md)
+  - [创建一个简单的maven原型](././maven/创建一个简单的maven原型.md)
+  - [创建项目站点和Javadoc报告](././maven/创建项目站点和Javadoc报告.md)
+  - [基于Maven构建一个简单的Java项目](././maven/基于Maven构建一个简单的Java项目.md)
+  - [多模块项目](././maven/多模块项目.md)
 - mysql
+  - MySQL CookBook笔记
+    - [P1检索记录](././mysql/MySQL%20CookBook笔记/P1检索记录.md)
+    - [P2查询结果排序](././mysql/MySQL%20CookBook笔记/P2查询结果排序.md)
+    - [P3多表查询](././mysql/MySQL%20CookBook笔记/P3多表查询.md)
+    - [P4插入、更新和删除](././mysql/MySQL%20CookBook笔记/P4插入、更新和删除.md)
+    - [P5元数据查询](././mysql/MySQL%20CookBook笔记/P5元数据查询.md)
+    - [P6字符串处理](././mysql/MySQL%20CookBook笔记/P6字符串处理.md)
+  - [MySQL](././mysql/MySQL.md)
   - [MySQL基础讲座笔记](././mysql/MySQL基础讲座笔记.md)
+  - MySQL课程笔记
+    - [1.MySQL架构介绍](././mysql/MySQL课程笔记/1.MySQL架构介绍.md)
+    - [2.索引优化分析](././mysql/MySQL课程笔记/2.索引优化分析.md)
+    - [3.查询截取分析](././mysql/MySQL课程笔记/3.查询截取分析.md)
+    - [4.MySQL锁机制](././mysql/MySQL课程笔记/4.MySQL锁机制.md)
+    - [5.主从复制](././mysql/MySQL课程笔记/5.主从复制.md)
 - spring-boot
+  - [SpringApplication](././spring-boot/SpringApplication.md)
   - [kotlin使用ConfigurationProperties注解](././spring-boot/kotlin使用ConfigurationProperties注解.md)
+  - [spring-Core笔记](././spring-boot/spring-Core笔记.md)
 - 支付相关
   - [注意事项](././支付相关/注意事项.md)
   - [签名相关的Kotlin模板](././支付相关/签名相关的Kotlin模板.md)
@@ -58,5 +96,8 @@
   - [鸡蛋掉落](././算法/鸡蛋掉落.md)
 - 编译原理
   - [综述](././编译原理/综述.md)
+- 解决方案
+  - [IDEA](././解决方案/IDEA.md)
+  - [IP](././解决方案/IP.md)
 - 读书笔记
   - [编码](././读书笔记/编码.md)
