@@ -1,15 +1,15 @@
 #!/bin/bash
 # 自动生成_sidebar.md文件脚本
-ignore_dir_reg=".*/images.*" # 忽略添加的文件夹正则
+ignore_dir_reg=".*/(images|imgs|img|pdf|src)" # 忽略添加的文件夹正则
 IFS=$(echo -en "\n\b")
 function getdir(){
     for element in `ls -1 $1`; do
         dir_or_file=$1"/"$element
         counter=`echo $dir_or_file | grep -o / | wc -l`
         let counter-=2
-        if [ -d $dir_or_file ]; then
+        if [ -d "$dir_or_file" ]; then
             if [[ "$dir_or_file" =~ $ignore_dir_reg ]]; then
-                continue
+                echo "wfb_test: $dir_or_file"
             else
                 printf '%0.s  ' $(seq 0 $counter) >> _sidebar.md
                 echo "- $element" >> _sidebar.md
