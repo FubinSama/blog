@@ -9,12 +9,18 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
     <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/FubinSama/blog@gh-pages/index.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css">
     <meta name="referrer" content="no-referrer">
 </head>
 
 <body>
     <div id="app">Please wait...</div>
     <script>
+
+    var num = 0;
+    mermaid.initialize({ startOnLoad: false });
+
     window.$docsify = {
         name: 'FubinSama',
         repo: 'https://github.com/FubinSama/blog',
@@ -31,13 +37,30 @@
         alias: {
         	'/.*/_sidebar.md': '/_sidebar.md'
         },
-        plugins: [
-
-        ]
+        plugins: [],
+        // object
+        markdown: {
+            smartypants: true,
+            renderer: {
+                code: function(code, lang) {
+                    if (lang === "mermaid") {
+                        return (
+                            '<div class="mermaid">' + mermaid.render('mermaid-svg-' + num++, code) + "</div>"
+                        );
+                    }
+                    return this.origin.code.apply(this, arguments);
+                }
+            },
+        },
+        noEmoji: true,
     }
     </script>
     <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-katex@latest/dist/docsify-katex.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
+    <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
     <script src="//cdn.jsdelivr.net/gh/FubinSama/blog@gh-pages/index.js"></script>
 </body>
 
