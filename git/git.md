@@ -21,7 +21,7 @@
 
 5. git变更：
 
-    ```mermaid{code_block=tfalse}
+    ```mermaid
         graph LR
         A[工作目录]
         -- <code>git add files</code> -->
@@ -99,7 +99,7 @@
    2. 传输速度：智能协议比哑协议传输速度快
 3. 备份特点：
 
-    ```mermaid{code_block=tfalse}
+    ```mermaid
     graph LR
     S1[备份S1]
     S[源git库]
