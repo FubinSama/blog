@@ -1,5 +1,6 @@
 - JAVA和Kotlin
   - [JAVA基础](././JAVA和Kotlin/JAVA基础.md)
+  - [JVM常用命令和选项](././JAVA和Kotlin/JVM常用命令和选项.md)
   - [Kotlin基础](././JAVA和Kotlin/Kotlin基础.md)
 - MQ
   - [AMPQ核心概念](././MQ/AMPQ核心概念.md)
@@ -26,6 +27,7 @@
   - [利用markdown写书](././git/利用markdown写书.md)
 - linux
   - [ArchLinux常用命令](././linux/ArchLinux常用命令.md)
+  - [Docker和k8s基础笔记](././linux/Docker和k8s基础笔记.md)
   - [RabbitMQ常用命令](././linux/RabbitMQ常用命令.md)
   - [centOS常用命令](././linux/centOS常用命令.md)
   - [docker](././linux/docker.md)
@@ -51,7 +53,6 @@
     - [P5元数据查询](././mysql/MySQL%20CookBook笔记/P5元数据查询.md)
     - [P6字符串处理](././mysql/MySQL%20CookBook笔记/P6字符串处理.md)
   - [MySQL](././mysql/MySQL.md)
-  - [MySQL基础讲座笔记](././mysql/MySQL基础讲座笔记.md)
   - MySQL课程笔记
     - [1.MySQL架构介绍](././mysql/MySQL课程笔记/1.MySQL架构介绍.md)
     - [2.索引优化分析](././mysql/MySQL课程笔记/2.索引优化分析.md)
@@ -60,13 +61,20 @@
     - [5.主从复制](././mysql/MySQL课程笔记/5.主从复制.md)
 - spring-boot
   - [SpringApplication](././spring-boot/SpringApplication.md)
+  - [SpringBootTest](././spring-boot/SpringBootTest.md)
   - [kotlin使用ConfigurationProperties注解](././spring-boot/kotlin使用ConfigurationProperties注解.md)
   - [spring-Core笔记](././spring-boot/spring-Core笔记.md)
 - 支付相关
   - [注意事项](././支付相关/注意事项.md)
   - [签名相关的Kotlin模板](././支付相关/签名相关的Kotlin模板.md)
+- 笔记
+  - [MySQL基础讲座笔记](././笔记/MySQL基础讲座笔记.md)
+  - [信息安全讲座笔记](././笔记/信息安全讲座笔记.md)
+  - [支付方法论](././笔记/支付方法论.md)
+  - [编码](././笔记/编码.md)
 - 算法
   - [01 矩阵](././算法/01%20矩阵.md)
+  - [483最小好进制](././算法/483最小好进制.md)
   - [两数相加 II](././算法/两数相加%20II.md)
   - [交点](././算法/交点.md)
   - [全排列](././算法/全排列.md)
@@ -99,5 +107,3 @@
 - 解决方案
   - [IDEA](././解决方案/IDEA.md)
   - [IP](././解决方案/IP.md)
-- 读书笔记
-  - [编码](././读书笔记/编码.md)
