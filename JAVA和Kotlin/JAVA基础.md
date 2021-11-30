@@ -91,3 +91,74 @@ List list2 = Arrays.stream(arr).collect(Collectors.toList());
 其迭代器为了实现简单，不允许在用迭代器遍历一个集合对象时，直接对集合对象进行修改操作（增加、删除、修改）。其引入了一种快速失败的机制，当检测到违背了上述原则时，会抛出`Concurrent Modification Exception`。
 
 基本原理是：集合中有一个`modCount`字段专门用来记录该集合被修改的次数，每次调用修改操作，都会导致该字段值加一。而创建迭代器时，会用一个`expectedModCount`字段来记录迭代器创建时的`modCount`值。每当迭代器使用`next()`方法获取下一个元素时，都会调用`checkForComodification()`方法来检测modCount变量是否为expectedmodCount值，从而判断迭代器创建后集合是否被修改过。
+
+## 嵌套类
+
+外部类只允许使用`public`或`package-private`(即不加任何修饰语)修饰。而内部类可以使用`public`、`protected`、`package-private`、`private`组合`static`来修饰。
+
+>嵌套类分为两类：非静态和静态。非静态嵌套类称为内部类。声明为静态的嵌套类称为静态嵌套类。
+
+```JAVA
+public class OuterClass {
+    
+    private String a = "OuterClass a";
+    private static String b = "OuterClass static b";
+
+    private void test1() {
+        System.out.println("OuterClass test1");
+    }
+
+    private static void test2() {
+        System.out.println("OuterClass static test2");
+    }
+
+    class InnerClass {
+
+        private String a = "InnerClass a";
+//         private static String b = "InnerClass static b"; // 内部类OuterClass.InnerClass中的静态声明非法
+
+        private void test1() {
+            System.out.println(a); // InnerClass a
+            System.out.println(b); // InnerClass static b
+            System.out.println(OuterClass.this.a); // OuterClass a
+            System.out.println(OuterClass.b); // OuterClass static b
+            OuterClass.this.test1(); // OuterClass test1
+            OuterClass.test2(); // OuterClass static test2
+        }
+
+        private void test2() {}
+    }
+
+    static class StaticNestedClass {
+        private String a = "StaticNestedClass a";
+        private static String b = "StaticNestedClass static b";
+
+        private static void test1() {
+//             System.out.println(a); // 无法从静态上下文中引用非静态 变量 a
+            System.out.println(b); // StaticNestedClass static b
+//             System.out.println(OuterClass.this.a); // 无法从静态上下文中引用非静态 变量 this
+            System.out.println(OuterClass.b); // StaticNestedClass static b
+//             OuterClass.this.test1(); // 无法从静态上下文中引用非静态 变量 this
+            OuterClass.test2(); // StaticNestedClass static test2
+        }
+
+        private void test2() {}
+    }
+
+    public static void main(String[] args) {
+        OuterClass outClass = new OuterClass();
+        InnerClass innerClass = outClass.new InnerClass(); // 内部类必须使用外部类实例`.new`创建，可以访问外部类的所有访问修饰符的实例字段、方法和静态字段、类方法
+        innerClass.test1();
+        innerClass.test2();
+        StaticNestedClass staticNestedClass = new StaticNestedClass(); // 内部静态类的实例创建方式同外部类，但是只能访问外部类的所有作用域的静态字段、方法
+        staticNestedClass.test1();
+        staticNestedClass.test2();
+    }
+}
+```
+
+## 局部类
+
+```java
+
+```
