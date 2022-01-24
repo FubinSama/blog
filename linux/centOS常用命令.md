@@ -1,5 +1,15 @@
 # centOS命令笔记
 
+## 禁用IPv6
+
+```sh
+vim /etc/default/grub
+# 在GRUB_CMDLINE_LINUX行添加 ipv6.disable=1
+# 即变为：GRUB_CMDLINE_LINUX="ipv6.disable=1 crashkernel=auto rhgb quiet 。。。"
+# 然后重启
+reboot
+```
+
 ## lrzsz
 
 1. 安装lrzsz：`yum -y install lrzsz`
