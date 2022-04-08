@@ -1,9 +1,11 @@
 - JAVA和Kotlin
   - [JAVA基础](././JAVA和Kotlin/JAVA基础.md)
+  - [JDK9内存顺序模型](././JAVA和Kotlin/JDK9内存顺序模型.md)
   - [JVM常用命令和选项](././JAVA和Kotlin/JVM常用命令和选项.md)
   - [Kotlin基础](././JAVA和Kotlin/Kotlin基础.md)
 - MQ
   - [AMPQ核心概念](././MQ/AMPQ核心概念.md)
+  - [AMQP 0-9-1协议](././MQ/AMQP%200-9-1协议.md)
   - [MQ简介](././MQ/MQ简介.md)
   - [RabbitMQ](././MQ/RabbitMQ.md)
 - NoSQL
@@ -27,6 +29,7 @@
   - [利用markdown写书](././git/利用markdown写书.md)
 - linux
   - [ArchLinux常用命令](././linux/ArchLinux常用命令.md)
+  - [CentOS7搭建openVPN](././linux/CentOS7搭建openVPN.md)
   - [Docker和k8s基础笔记](././linux/Docker和k8s基础笔记.md)
   - [RabbitMQ常用命令](././linux/RabbitMQ常用命令.md)
   - [centOS常用命令](././linux/centOS常用命令.md)
@@ -35,6 +38,7 @@
   - [opensuse常用命令](././linux/opensuse常用命令.md)
   - [安装ArchLinux](././linux/安装ArchLinux.md)
   - [常用命令](././linux/常用命令.md)
+  - [腾讯云CentOS7搭建PPTP VPN](././linux/腾讯云CentOS7搭建PPTP%20VPN.md)
 - maven
   - [Sonatype_Nexus私服](././maven/Sonatype_Nexus私服.md)
   - [maven概述](././maven/maven概述.md)
@@ -64,7 +68,21 @@
   - [SpringBootTest](././spring-boot/SpringBootTest.md)
   - [kotlin使用ConfigurationProperties注解](././spring-boot/kotlin使用ConfigurationProperties注解.md)
   - [spring-Core笔记](././spring-boot/spring-Core笔记.md)
+- spring-cloud
+  - [分布式请求链路追踪](././spring-cloud/分布式请求链路追踪.md)
+  - [服务容错与断路器](././spring-cloud/服务容错与断路器.md)
+  - [服务注册与发现](././spring-cloud/服务注册与发现.md)
+  - [服务配置和总线](././spring-cloud/服务配置和总线.md)
+  - [消息驱动stream](././spring-cloud/消息驱动stream.md)
+  - [网关gateway](././spring-cloud/网关gateway.md)
+  - [远程过程调用与负载均衡](././spring-cloud/远程过程调用与负载均衡.md)
+  - [马丁熔断器论文](././spring-cloud/马丁熔断器论文.md)
+- 基本定义
+  - [URI](././基本定义/URI.md)
 - 支付相关
+  - [Nequi](././支付相关/Nequi.md)
+  - [Nequi还款回调文档](././支付相关/Nequi还款回调文档.md)
+  - [基于BouncyCastle实现的PGP工具类](././支付相关/基于BouncyCastle实现的PGP工具类.md)
   - [注意事项](././支付相关/注意事项.md)
   - [签名相关的Kotlin模板](././支付相关/签名相关的Kotlin模板.md)
 - 笔记
@@ -104,6 +122,8 @@
   - [鸡蛋掉落](././算法/鸡蛋掉落.md)
 - 编译原理
   - [综述](././编译原理/综述.md)
+- 网络
+  - [基本知识](././网络/基本知识.md)
 - 解决方案
   - [IDEA](././解决方案/IDEA.md)
   - [IP](././解决方案/IP.md)
