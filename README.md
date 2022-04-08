@@ -1,8 +1,9 @@
 # wfb's blog
 
-> https://fubinsama.github.io/blog
+> [项目地址](https://fubinsama.github.io/blog)
 
 ## Hello World
+
 ```html
 <!-- html -->
 <div>Hello World</div>
@@ -36,6 +37,7 @@ System.out.println("Hello World");
 ```
 
 ```kotlin
+/* kotlin */
 println("Hello World")
 ```
 
@@ -59,12 +61,12 @@ fmt.Printf("Hello World");
 echo "Hello World";
 ```
 
-```c#
+```csharp
 /* C# */
 Console.WriteLine("Hello World");
 ```
 
-```vbscript
+```vb
 /* vbscript */
 MsgBox("Hello,World!")
 ```
