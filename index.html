@@ -40,6 +40,12 @@
             buttonText : '点击复制到粘帖板',
             errorText  : '复制失败',
             successText: '复制成功'
+        },
+        pagination: {
+            previousText: '上一篇',
+            nextText: '下一篇',
+            crossChapter: true,
+            crossChapterText: true,
         }
     }
     </script>
@@ -52,7 +58,11 @@
     <script src="//cdn.jsdelivr.net/npm/docsify-mermaid/dist/docsify-mermaid.js"></script>
     <script>mermaid.initialize({ startOnLoad: true });</script>
 
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+
     <script src="//cdn.jsdelivr.net/gh/FubinSama/blog@gh-pages/index.js"></script>
+    
 </body>
 
 </html>
