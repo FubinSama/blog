@@ -1,0 +1,33 @@
+# Plaid
+
+## webhook
+
+Plaid sends POST payloads with raw JSON to your webhook URL from one of the following IP addresses:
+
+- 52.21.26.131
+- 52.21.47.157
+- 52.41.247.19
+- 52.88.82.239
+
+Note that these IP addresses are subject to change.
+
+If there is a non-200 response or **no response within 10 seconds** from the webhook endpoint, Plaid will retry sending the webhook up to **two times** with a few minutes in between each webhook.
+
+可以通过调用`/sandbox/item/fire_webhook`端点来触发啥想环境的webhook。
+
+## Transactions
+
+检索和刷新 24 个月的历史交易数据，包括地理位置、商家和类别信息。
+
+端点｜描述
+--- | ---
+`/transactions/get` | 获取交易数据，只能查到用户授权的信用、存款和一些贷款类型的账户。投资账户的交易历史要调用专用的investment端点。order by transaction_time desc。被机构删除的交易记录将不会再查的到。结果是分页的。其数据每天只会在固定时间更新，可以通过调用refresh端点来主动刷新。
+`/transactions/refresh` | 刷新交易数据
+`/categories/get` | 获取所有交易类别
+
+与交易状态相关的回调｜解释
+--- ｜ ---
+INITIAL_UPDATE ｜ Initial transactions ready
+HISTORICAL_UPDATE ｜ Historical transactions ready
+DEFAULT_UPDATE ｜ New transactions available
+TRANSACTIONS_REMOVED ｜ Deleted transactions detected
