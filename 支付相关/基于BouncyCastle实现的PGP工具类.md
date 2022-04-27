@@ -1,8 +1,19 @@
 # 基于BouncyCastle实现的PGP工具类
 
-- [基于BouncyCastle实现的PGP工具类](#基于bouncycastle实现的pgp工具类)
-  - [所需maven依赖](#所需maven依赖)
-  - [工具类](#工具类)
+## gpg命令行工具的常用命令
+
+> `https://www.ruanyifeng.com/blog/2013/07/gpg.html`
+
+常用操作｜对应命令
+--- | ---
+列出密钥 | `gpg --list-keys --keyid-format long --fingerprint`
+列出公钥 | `gpg --list-public-keys --keyid-format long --fingerprint`
+列出私钥 | `gpg --list-secret-keys --keyid-format long --fingerprint`
+删除公钥 | `gpg --delete-key [user id]`
+删除公私钥 | `gpg --delete-secret-and-public-key [user id]`
+输出公钥（--armor表示ASCII码显示） | `gpg --armor --output [output file name] --export [user id]`
+输出私钥（--armor表示ASCII码显示） | `gpg --armor --output [output file name] --export-secret-keys [user id]`
+引入密钥 | `gpg --import [file name]`
 
 ## 所需maven依赖
 
