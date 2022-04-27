@@ -40,3 +40,7 @@
 即类似Math这种工具类要private构造器，推荐写上该类不允许实例化的注释，如：Don't let anyone instantiate this class
 
 ### 优先考虑依赖注入来引用资源
+
+如果一个类依赖于其它资源，推荐使用依赖注入而不是将其写死置于工具类或者Singleton类中。
+
+###
