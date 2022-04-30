@@ -1,3 +1,0 @@
-# blog
-
-wfb's blog

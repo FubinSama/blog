@@ -14,6 +14,9 @@
 输出公钥（--armor表示ASCII码显示） | `gpg --armor --output [output file name] --export [user id]`
 输出私钥（--armor表示ASCII码显示） | `gpg --armor --output [output file name] --export-secret-keys [user id]`
 引入密钥 | `gpg --import [file name]`
+解密文件 | `gpg --decrypt [file name]`
+加密文件 ｜ `gpg --recipient [user id] --output [output file name] --encrypt [file name]`
+生成密钥 ｜ `gpg --full-generate-key`
 
 ## 所需maven依赖
 
