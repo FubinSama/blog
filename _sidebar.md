@@ -5,6 +5,7 @@
   - [JVM常用命令和选项](./JAVA和Kotlin/JVM常用命令和选项.md)
   - [Java多线程](./JAVA和Kotlin/Java多线程.md)
   - [Kotlin基础](./JAVA和Kotlin/Kotlin基础.md)
+  - [MyBatis](./JAVA和Kotlin/MyBatis.md)
 - MQ
   - [AMPQ核心概念](./MQ/AMPQ核心概念.md)
   - [AMQP 0-9-1协议](./MQ/AMQP%200-9-1协议.md)
