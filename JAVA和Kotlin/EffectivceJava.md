@@ -13,6 +13,9 @@
     - [对于实现了AutoCloseable接口的类，try-with-ressources优先于try-finally](#对于实现了autocloseable接口的类try-with-ressources优先于try-finally)
   - [对所有对象都通用的方法](#对所有对象都通用的方法)
     - [重写equals时请遵守通用约定](#重写equals时请遵守通用约定)
+    - [重写equals时总要重写hashCode](#重写equals时总要重写hashcode)
+    - [始终要重写toString](#始终要重写tostring)
+    - [谨慎的重写clone方法](#谨慎的重写clone方法)
 
 ## 创建和销毁对象
 
@@ -128,3 +131,43 @@ Note that it is generally necessary to override the hashCode method whenever thi
 5. 重写`equals`时总要重写`hashCode`。
 6. 不要企图让`equals`过于智能。
 7. 不要将`equals`方法的参数声明中的`Object`类型替换为其它类型。
+
+### 重写equals时总要重写hashCode
+
+The general contract of hashCode is:
+
+- Whenever it is invoked on the same object more than once during an execution of a Java application, the hashCode method must consistently return the same integer, provided no information used in equals comparisons on the object is modified. This integer need not remain consistent from one execution of an application to another execution of the same application.
+- If two objects are equal according to the equals(Object) method, then calling the hashCode method on each of the two objects must produce the same integer result.
+- It is not required that if two objects are unequal according to the equals(Object) method, then calling the hashCode method on each of the two objects must produce distinct integer results. However, the programmer should be aware that producing distinct integer results for unequal objects may improve the performance of hash tables.
+
+As much as is reasonably practical, the hashCode method defined by class Object does return distinct integers for distinct objects. (This is typically implemented by converting the internal address of the object into an integer, but this implementation technique is not required by the Java™ programming language.)
+
+即：
+
+1. 在应用程序的执行期间，只要对象的`equals`方法的比较操作所用到的信息没有被修改，那么对同一个对象的多次调用，`hashCode`必须始终返回同一个值。在一个应用程序与另一个程序的执行过程中，执行`hashCode`方法所返回的值可以不一致。
+2. 如果两个对象根据`equals(Object)`方法比较是相等的，那么调用这两个对象中的`hashCode`方法都必须产生同样的整数结果。
+3. 如果两个对象根据`equals(Object)`方法比较是不想等的，那么调用这两个对象中的`hashCode`方法，则不一定要求`hashCode`必须产生不同的结果。但是程序员应该知道，给不想等的对象产生截然不同的整数结果，有可能提高散列表的性能。
+
+如果重写`equals`而不重写`hashCode`方法，则很容易违反第2条规范。相等的对象必须有相等的散列值。
+
+可以调用`java.util.Objects.hash(Object... values)`，或者参考它自己实现。
+
+- 在散列码的计算过程中，可以把衍生域（derived field）排除在外。
+- 如果一个类是不可变的，并且计算散列码的开销也比较大，就应该考虑把散列码缓存在对象内部，而不是每次请求的时候都重新计算散列码。
+- 不要试图从散列码计算中排除掉一个对象的关键域来提高性能。
+- 不要向`String`、`Integer`等类一样为其`hashCode`函数通过方法注释指明了实现方式，这会使得你无法再更改其实现，因为调用方可能只是按注释写明的算法而不是`hashCode`本身的作用去编写的调用代码。
+
+### 始终要重写toString
+
+`Object`的`toString`方法有如下注释：
+
+Returns a string representation of the object. In general, the toString method returns a string that "textually represents" this object. The result should be a concise but informative representation that is easy for a person to read. It is recommended that all subclasses override this method.
+
+其建议子类全部重写`toString`方法，被返回的字符串应该是一个“简介单信息丰富，并且易于阅读的表达形式”。
+
+- 在实际应用中，`toString`方法应该返回对象中包含的所有值得关注的信息。如果对象太大，或者对象中包含的状态信息难以用字符串来表达，则应该返回一个摘要信息。
+- 对于值类，建议在文档中指定返回值的格式。通常最好再提供一个相匹配的静态工厂或者构造器，以便程序员可以很容易地在对象及其字符串表示法之间来回转换。Java平台类库中的许多值都采用了这种做法，比如：`BigInteger`、`BigDecimal`和绝大多数的基本类型包装类。
+- 无论是否决定指定格式，都应该在文档中明确地表明你的意图。如写明：The exact details of the representation are unspecified and subject to change，表明当前toString方法还没有规范的返回值格式，当前的格式只代表当前的定义，后面可能会出现修改。
+- 在静态工具类中编写`toString`方法是没有意义的。也不要在大多数枚举类型中编写`toString`方法，因为Java已经提供了非常完美的方法。在所有的子类共享的通用字符串表示法的抽象类中，一定要编写一个`toString`方法。例如：大多数集合实现中的`toString`方法都继承自抽象的集合类。
+
+### 谨慎的重写clone方法
