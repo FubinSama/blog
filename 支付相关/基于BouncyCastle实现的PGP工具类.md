@@ -4,7 +4,7 @@
 
 > `https://www.ruanyifeng.com/blog/2013/07/gpg.html`
 
-常用操作｜对应命令
+常用操作 | 对应命令
 --- | ---
 列出密钥 | `gpg --list-keys --keyid-format long --fingerprint`
 列出公钥 | `gpg --list-public-keys --keyid-format long --fingerprint`
@@ -15,8 +15,8 @@
 输出私钥（--armor表示ASCII码显示） | `gpg --armor --output [output file name] --export-secret-keys [user id]`
 引入密钥 | `gpg --import [file name]`
 解密文件 | `gpg --decrypt [file name]`
-加密文件 ｜ `gpg --recipient [user id] --output [output file name] --encrypt [file name]`
-生成密钥 ｜ `gpg --full-generate-key`
+加密文件 | `gpg --recipient [user id / key id] --output [output file name] --encrypt [file name]`
+生成密钥 | `gpg --full-generate-key`
 
 ## 所需maven依赖
 

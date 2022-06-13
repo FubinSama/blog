@@ -162,3 +162,107 @@ public class OuterClass {
 ```java
 
 ```
+
+## 类加载机制
+
+> 详见java8语言规范：`https://docs.oracle.com/javase/specs/jls/se8/html/jls-12.html`
+
+类加载的基本步骤：
+
+1. 加载：将类的二进制表示加载到内存中
+2. 链接：验证（验证类的二进制表示格式正确）、准备（进行类的空间分配，并初始化为默认值，为jvm所需的额外数据结构分配内存和初始化）、解析（将符号引用转化为直接引用，这个步骤是可选的，取决于虚拟机）
+3. 初始化（类的初始化包括执行其静态初始化程序和类中声明的静态字段（类变量）的初始化程序，接口的初始化包括执行接口中声明的字段（常量）的初始化程序）
+
+类或接口类型 T 将在以下任何一项第一次出现之前立即初始化：
+
+1. `T`是一个类，并创建了一个`T`的实例。
+2. 调用由`T`声明的静态方法。
+3. 分配了一个由`T`声明的静态字段。
+4. 使用了由`T`声明的静态字段，并且该字段不是常量变量。
+5. `T`是一个顶级类，并且执行在词法上嵌套在`T`中的`assert`语句。
+
+> 注意：子类的初始化意味着父类必须要先初始化。子接口的初始化不会导致父接口被初始化。
+> 使用类或者接口的常量变量（即`static final`修饰的变量）不会导致初始化。（接口的方法默认是`public static`，属性默认是`public static final`，即调用调用接口里面的属性不会引起接口初始化）
+> 单纯的声明一个`T`类型的变量，如：`T t = null;`不会导致初始化。
+> 对静态字段的引用（第 8.3.1.1 节）只会初始化实际声明它的类或接口，即使它可能通过子类、子接口或实现接口的类的名称来引用。
+> 在类`Class`和包`java.lang.reflect`中调用某些反射方法也会导致类或接口初始化。
+
+### 类初始化的细节
+
+Java 虚拟机的实现负责通过使用以下过程来处理同步和递归初始化。
+该过程假定 Class 对象已经过验证和准备，并且 Class 对象包含指示以下四种情况之一的状态：
+
+1. 这个 Class 对象已经过验证和准备，但没有初始化。
+2. 这个 Class 对象正在由某个特定的线程`T`初始化。
+3. 这个 Class 对象已经完全初始化并可以使用了。
+4. 此 Class 对象处于错误状态，可能是因为尝试初始化但失败。
+
+对于每个类或接口`C`，都有一个唯一的初始化锁`LC`。从`C`到`LC`的映射由`Java`虚拟机实现决定。初始化`C`的过程如下：
+
+
+
+## 二进制兼容性
+
+更改成员或构造函数的声明访问以允许较少的访问可能会破坏与预先存在的二进制文件的兼容性，从而导致在解析这些二进制文件时引发链接错误。但是，在链接完成后，再将父类更改为更大访问性，并重新编译父类却不会产生错误。如：
+
+```shell
+mkdir points;
+vim points/Point.java
+```
+
+```java
+package points;
+public class Point {
+    public int x, y;
+    protected void print() {
+        System.out.println("(" + x + "," + y + ")");
+    }
+}
+```
+
+```shell
+vim Test.java
+```
+
+```java
+class Test extends points.Point {
+    public static void main(String[] args) {
+        Test t = new Test();
+        t.print();
+    }
+    protected void print() { 
+        System.out.println("Test"); 
+    }
+}
+```
+
+```shell
+javac Test.java
+java Test
+# 会正常输出Test
+# 现在将Point的print方法改为public，并重新编译
+cd points
+rm -f Point.class
+vim Point.java
+```
+
+```java
+class Test extends points.Point {
+    public static void main(String[] args) {
+        Test t = new Test();
+        t.print();
+    }
+
+    // 将protected改为public
+    public void print() { 
+        System.out.println("Test"); 
+    }
+}
+```
+
+```shell
+javac Point.java
+cd ..
+java Test
+# 仍然会正常输出Test
+```
