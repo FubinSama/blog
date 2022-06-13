@@ -6,6 +6,7 @@
   - [Java多线程](./JAVA和Kotlin/Java多线程.md)
   - [Kotlin基础](./JAVA和Kotlin/Kotlin基础.md)
   - [MyBatis](./JAVA和Kotlin/MyBatis.md)
+  - [编码小技巧总结](./JAVA和Kotlin/编码小技巧总结.md)
 - MQ
   - [AMPQ核心概念](./MQ/AMPQ核心概念.md)
   - [AMQP 0-9-1协议](./MQ/AMQP%200-9-1协议.md)
@@ -85,8 +86,9 @@
 - 支付相关
   - [Nequi](./支付相关/Nequi.md)
   - [Nequi还款回调文档](./支付相关/Nequi还款回调文档.md)
-  - [Plaid](./支付相关/Plaid.md)
+  - [Plaid&TabaPay](./支付相关/Plaid&TabaPay.md)
   - [基于BouncyCastle实现的PGP工具类](./支付相关/基于BouncyCastle实现的PGP工具类.md)
+  - [支付术语总结](./支付相关/支付术语总结.md)
   - [注意事项](./支付相关/注意事项.md)
   - [签名相关的Kotlin模板](./支付相关/签名相关的Kotlin模板.md)
 - 笔记
@@ -130,5 +132,5 @@
   - [基本知识](./网络/基本知识.md)
 - 解决方案
   - [IDEA](./解决方案/IDEA.md)
-  - [IP](./解决方案/IP.md)
+  - [IP&PORT](./解决方案/IP&PORT.md)
   - [logback](./解决方案/logback.md)
