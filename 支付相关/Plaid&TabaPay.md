@@ -1,6 +1,12 @@
-# Plaid
+# Plaid & TabaPay
 
-## 获取access_token
+## Plaid
+
+## Link
+
+Plaid Link is the client-side component that your users will interact with in order to link their accounts to Plaid and allow you to access their accounts via the Plaid API.
+
+### 获取access_token
 
 在进入页面时：
 
@@ -21,7 +27,7 @@
     }
     ```
 
-    主要是用来得到我们使用的products
+    主要是用来得到我们使用的products，
 
 2. 调用`/api/create_link_token`接口，获得：
 
@@ -51,7 +57,7 @@
 
     有了`access_token`和`item_id`，才有了调用其它product对应的产品的能力。这个access_token是可以持久化存储和使用的。
 
-## webhook
+### webhook
 
 Plaid sends POST payloads with raw JSON to your webhook URL from one of the following IP addresses:
 
@@ -65,3 +71,8 @@ Note that these IP addresses are subject to change.
 If there is a non-200 response or **no response within 10 seconds** from the webhook endpoint, Plaid will retry sending the webhook up to **two times** with a few minutes in between each webhook.
 
 可以通过调用`/sandbox/item/fire_webhook`端点来触发啥想环境的webhook。
+
+## TabaPay
+
+- RTP：只支持Credit Push，即只能用来放款。
+- ACH：支持Credit and Debit两个方向

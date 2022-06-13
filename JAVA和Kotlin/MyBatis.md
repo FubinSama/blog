@@ -213,5 +213,5 @@ SQL 映射文件只有很少的几个顶级元素（按照应被定义的顺序�
 - `statementType`：可选 `STATEMENT`，`PREPARED` 或 `CALLABLE`。这会让 `MyBatis` 分别使用 `Statement`（jdbc执行静态sql），`PreparedStatement`（jdbc预编译sql语句） 或 `CallableStatement`（jdbc调用储存过程），默认值：`PREPARED`。
 - `resultSetType`：`FORWARD_ONLY`（结果集的游标只能向下滚动），`SCROLL_SENSITIVE`（返回可滚动的结果集，当数据库变化时，当前结果集同步改变）, `SCROLL_INSENSITIVE`（结果集的游标可以上下移动，当数据库变化时，当前结果集不变） 或 `DEFAULT`（等价于`unset`） 中的一个，默认值为 `unset` （依赖数据库驱动）。在JDBC规范中,resultSetType的默认取值为`TYPE_FORWARD_ONLY`。
 - `databaseId`：如果配置了数据库厂商标识（databaseIdProvider），MyBatis 会加载所有不带 databaseId 或匹配当前 databaseId 的语句；如果带和不带的语句都有，则不带的会被忽略。
-- `resultOrdered`：这个设置仅针对嵌套结果 select 语句：如果为 true，将会假设包含了嵌套结果集或是分组，当返回一个主结果行时，就不会产生对前面结果集的引用。 这就使得在获取嵌套结果集的时候不至于内存不够用。默认值：false。
-- `resultSets`：这个设置仅适用于多结果集的情况。它将列出语句执行后返回的结果集并赋予每个结果集一个名称，多个名称之间以逗号分隔。
+- `resultOrdered`：这个设置仅针对嵌套结果 select 语句：如果为 true，将会假设包含了嵌套结果集或是分组，当返回一个主结果行时，就不会产生对前面结果集的引用。 这就使得在获取嵌套结果集的时候不至于内存不够用。默认值：false。详见：test中的`org.apache.ibatis.submitted.nestedresulthandler.NestedResultHandlerTest#testGetPerson`方法。
+- `resultSets`：这个设置仅适用于多结果集的情况。它将列出语句执行后返回的结果集并赋予每个结果集一个名称，多个名称之间以逗号分隔。详见：test中的`org.apache.ibatis.submitted.sptests.SPTest#testGetNamesAndItems`方法。
