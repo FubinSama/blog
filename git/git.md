@@ -121,6 +121,9 @@
     |git fetch _仓库名_ _分支名_|将远端仓库的某分支拉去到本地，不加分支则拉去全部|
     |git merge _分支名_|合并当前分支和指明的分支，--allow-unrelated-histories选项可以允许没有关联的两个分支就行合并|
     |git merge --abort|撤销merge操作|
+    |git stash save "注释"|临时将已跟踪文件的变动暂存|
+    |git stash list|展示所有暂存|
+    |git stash pop|弹出并恢复之前的暂存|
 
 ## gitignore文件的编写
 
@@ -148,3 +151,15 @@
 ## 提醒
 
 1. 多人协作时不要使用rebase命令和-f选项，以防更改历史，导致其他人与分支有很大差异，很难修改。
+
+## 问题解决方案
+
+### 不小心 git stash clear后，如何找回并恢复代码
+
+```sh
+git log --graph --oneline --decorate  $( git fsck --no-reflog | awk '/dangling commit/ {print $3}' )
+```
+
+![执行结果](./images/log.png)
+
+然后`git stash apply [对应的id]`即可。
