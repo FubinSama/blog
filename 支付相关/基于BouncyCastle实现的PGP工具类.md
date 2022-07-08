@@ -62,6 +62,11 @@ import java.util.*
 /**
  * <p>
  *  PGPUtils
+ *  请注意：非对称公钥系统中，公钥加密，私钥解密；而私钥签名，公钥验证。
+ *  这是因为公钥会被分发给协作者，而私钥原则上只有自己知道。
+ *  所以：
+ *  当要求信息机密时，让协作者用公钥对数据加密，那么只有持有公钥的我可以解密，这就保证了信息的机密性
+ *  当要求进行签名时，xxx使用自己的私钥去加密信息，那么持有公钥的协作者都可以解密，从而可以验证签名；并且只有xxx持有私钥，所以协作者们没法子假冒和修改签名，这就确保了消息一定来自于xxx
  * </p>
  * @author wfb
  * @version 1.0
@@ -77,12 +82,21 @@ object PGPUtils {
         private val publicKey = getPublicKey(keyStream, keyId)
         override fun obtainPublicKey(): PGPPublicKey = publicKey
         override fun obtainPrivateKey(): PGPPrivateKey = throw BankException("public key holder can not create the private key")
+        fun encryptWithSign(
+            src: InputStream, dst: OutputStream, secretKeyHolder: SecretKeyHolder,
+            fileName: String= "", modifyTime: Long = Instant.now().toEpochMilli(),
+            compressAlgorithmEnum: CompressAlgorithmEnum = CompressAlgorithmEnum.UNCOMPRESSED,
+            symmetricKeyAlgorithmEnum: SymmetricKeyAlgorithmEnum = SymmetricKeyAlgorithmEnum.AES_128,
+            hashAlgorithmEnum: HashAlgorithmEnum = HashAlgorithmEnum.SHA256,
+            armor: Boolean = false, withIntegrityCheck: Boolean = true
+        ) = encryptWithSign(src, dst, obtainPublicKey(), secretKeyHolder.obtainPrivateKey(), fileName, modifyTime, compressAlgorithmEnum, symmetricKeyAlgorithmEnum, hashAlgorithmEnum, armor, withIntegrityCheck)
     }
 
     data class SecretKeyHolder(val keyStream: InputStream, val keyId: String, val pass: String): KeyHolder {
         private val secretKey = getSecretKey(keyStream, keyId)
         override fun obtainPublicKey(): PGPPublicKey = secretKey.publicKey
         override fun obtainPrivateKey(): PGPPrivateKey = secretKey.extractPrivateKey(pass.toCharArray(), "BC")
+        fun decryptWithSignAndWrite(src: InputStream, dst: OutputStream, publicKeyHolder: PublicKeyHolder) = dst.write(decryptWithSign(src, obtainPrivateKey(), publicKeyHolder.obtainPublicKey()))
     }
 
     interface KeyHolder {
@@ -98,7 +112,7 @@ object PGPUtils {
             fileName: String= "", modifyTime: Long = Instant.now().toEpochMilli(),
             compressAlgorithmEnum: CompressAlgorithmEnum = CompressAlgorithmEnum.UNCOMPRESSED,
             symmetricKeyAlgorithmEnum: SymmetricKeyAlgorithmEnum = SymmetricKeyAlgorithmEnum.AES_128,
-            armor: Boolean = false, withIntegrityCheck: Boolean = false
+            armor: Boolean = false, withIntegrityCheck: Boolean = true
         ) = encrypt(src, dst, obtainPublicKey(), fileName, modifyTime, compressAlgorithmEnum, symmetricKeyAlgorithmEnum, armor, withIntegrityCheck)
 
         /**
@@ -126,7 +140,7 @@ object PGPUtils {
         /**
          * 对输入的签名流执行校验
          */
-        fun forceVerify(src: InputStream, dst: OutputStream): Boolean = runCatching { dst.write(verify(src)) }.isSuccess
+        fun verifyAndWrite(src: InputStream, dst: OutputStream) = dst.write(verify(src))
 
         /**
          * 生成cleartext格式的签名，然后写入dst流
@@ -144,7 +158,7 @@ object PGPUtils {
         /**
          * 对输入的签名流执行校验
          */
-        fun forceClearTextVerify(src: InputStream, dst: OutputStream): Boolean = runCatching { dst.write(clearTextVerify(src)) }.isSuccess
+        fun clearTextVerifyAndWrite(src: InputStream, dst: OutputStream) = dst.write(clearTextVerify(src))
     }
     
     /**
@@ -204,6 +218,7 @@ object PGPUtils {
         val outStream = if (armor) ArmoredOutputStream(dst) else dst
         
         val bytes = src.readBytes() // 输入的数据
+
         // 对输入数据进行处理，并压缩
         val pgpBytes = ByteArrayOutputStream().use { baos ->
             PGPCompressedDataGenerator(getCompressionAlgorithmTags(compressAlgorithmEnum)).open(baos).use { compressStream ->
@@ -214,6 +229,15 @@ object PGPUtils {
             baos.toByteArray()
         }
         
+        encrypt(pgpBytes, outStream, publicKey, symmetricKeyAlgorithmEnum, withIntegrityCheck)
+        
+        if (armor) outStream.close()
+    }
+    
+    private fun encrypt(
+        bytes: ByteArray, outStream: OutputStream, publicKey: PGPPublicKey, 
+        symmetricKeyAlgorithmEnum: SymmetricKeyAlgorithmEnum, withIntegrityCheck: Boolean
+    ) {
         // 对压缩后的数据进行加密并写入
         val encryptedDataGenerator = PGPEncryptedDataGenerator(
             getSymmetricKeyAlgorithmTags(symmetricKeyAlgorithmEnum),
@@ -223,13 +247,42 @@ object PGPUtils {
         )
         encryptedDataGenerator.addMethod(publicKey)
         // 将数据写入
-        encryptedDataGenerator.open(outStream, pgpBytes.size.toLong()).use {
-            it.write(pgpBytes)
+        encryptedDataGenerator.open(outStream, bytes.size.toLong()).use {
+            it.write(bytes)
         }
-        
-        if (armor) outStream.close()
     }
 
+    /**
+     * 先签名后加密数据
+     */
+    private fun encryptWithSign(
+        src: InputStream, dst: OutputStream, 
+        publicKey: PGPPublicKey, privateKey: PGPPrivateKey, 
+        fileName: String= "", modifyTime: Long = Instant.now().toEpochMilli(),
+        compressAlgorithmEnum: CompressAlgorithmEnum = CompressAlgorithmEnum.UNCOMPRESSED,
+        symmetricKeyAlgorithmEnum: SymmetricKeyAlgorithmEnum = SymmetricKeyAlgorithmEnum.AES_128,
+        hashAlgorithmEnum: HashAlgorithmEnum = HashAlgorithmEnum.SHA256,
+        armor: Boolean = false, withIntegrityCheck: Boolean = false
+    ) {
+        // 获取待签名的数据
+        val bytes = src.readBytes()
+        val signBytes = ByteArrayOutputStream().use { out ->
+            sign(bytes, out, privateKey, publicKey, fileName, modifyTime, hashAlgorithmEnum)
+            out.toByteArray()
+        }
+        // 写入加密数据
+        // 对输入数据进行处理，并压缩
+        val pgpBytes = ByteArrayOutputStream().use { baos ->
+            PGPCompressedDataGenerator(getCompressionAlgorithmTags(compressAlgorithmEnum)).open(baos).use {
+                it.write(signBytes)
+            }
+            baos.toByteArray()
+        }
+        val outStream = if (armor) ArmoredOutputStream(dst) else dst
+        encrypt(pgpBytes, outStream, publicKey, symmetricKeyAlgorithmEnum, withIntegrityCheck)
+        if (armor) outStream.close()
+    }
+    
     /**
      * 将src流使用指定的私钥解密到dst流中
      * 会自动判断使用的算法，是否需要解密，是否要进行完整性检查
@@ -238,20 +291,9 @@ object PGPUtils {
         src: InputStream, dst: OutputStream,
         privateKey: PGPPrivateKey
     ) {
-        // 获取拆分后的包
-        val pgpObjectFactory = PGPObjectFactory(PGPUtil.getDecoderStream(src))
-        val nextObject = pgpObjectFactory.nextObject()
-        // 如果nextObject就是PGPEncryptedDataList则直接赋值，否则它是个PGP marker packet，直接取下一个数据就是了
-        val encryptedDataList = if (nextObject is PGPEncryptedDataList) nextObject
-        else pgpObjectFactory.nextObject() as PGPEncryptedDataList
-        // 查找需要用该私钥解密的encryptedData，对其解密
-        val ped = encryptedDataList.encryptedDataObjects.asSequence().map {
-            it as PGPPublicKeyEncryptedData
-        }.firstOrNull {
-             it.keyID == privateKey.keyID
-        } ?: throw PGPException("There isn't an encryptedData which need this privateKey[${privateKey.keyID}] to decrypt")
-        // 创建解压缩工厂
-        var message = PGPObjectFactory(ped.getDataStream(privateKey, "BC")).nextObject()
+        val ped = getPublicKeyEncryptedData(src, privateKey)
+        val messageFactory = PGPObjectFactory(ped.getDataStream(privateKey, "BC"))
+        var message = messageFactory.nextObject()
         if (message is PGPCompressedData) {
             message = PGPObjectFactory(message.dataStream).nextObject()
         }
@@ -266,11 +308,47 @@ object PGPUtils {
                 throw PGPException("Message is not a simple encrypted file - type unknown.")
             }
         }
+
+        // 进行完整性校验
         if (ped.isIntegrityProtected) {
             if (!ped.verify()) throw PGPException("Message failed integrity check")
         }
     }
 
+    /**
+     * 对带有签名的加密文件进行解密同时验证签名
+     */
+    private fun decryptWithSign(src: InputStream, privateKey: PGPPrivateKey, publicKey: PGPPublicKey): ByteArray {
+        val ped = getPublicKeyEncryptedData(src, privateKey)
+        val compressedData = PGPObjectFactory(ped.getDataStream(privateKey, "BC")).nextObject()
+        if (compressedData !is PGPCompressedData) throw BankException("the first object in sign file must be PGPCompressedData")
+        val messageFactory = PGPObjectFactory(compressedData.dataStream)
+        val bytes =  verify(messageFactory, publicKey)
+        // 进行完整性校验
+        if (ped.isIntegrityProtected) {
+            if (!ped.verify()) throw PGPException("Message failed integrity check")
+        }
+        return bytes
+    }
+
+    /**
+     * 从加密文件中获取当前指定的key可以解密的PED包（即：发给me的那一份数据）
+     */
+    private fun getPublicKeyEncryptedData(src: InputStream, privateKey: PGPPrivateKey): PGPPublicKeyEncryptedData {
+        // 获取拆分后的包
+        val pgpObjectFactory = PGPObjectFactory(PGPUtil.getDecoderStream(src))
+        val nextObject = pgpObjectFactory.nextObject()
+        // 如果nextObject就是PGPEncryptedDataList则直接赋值，否则它是个PGP marker packet，直接取下一个数据就是了
+        val encryptedDataList = if (nextObject is PGPEncryptedDataList) nextObject
+        else pgpObjectFactory.nextObject() as PGPEncryptedDataList
+        // 查找需要用该私钥解密的encryptedData，对其解密
+        return encryptedDataList.encryptedDataObjects.asSequence().map {
+            it as PGPPublicKeyEncryptedData
+        }.firstOrNull {
+            it.keyID == privateKey.keyID
+        } ?: throw PGPException("There isn't an encryptedData which need this privateKey[${privateKey.keyID.toULong().toString(16)}] to decrypt")
+    }
+    
     /**
      * 将签名后的内容写入dst流
      */
@@ -284,10 +362,26 @@ object PGPUtils {
     ) {
         // 获取待签名的数据
         val bytes = src.readBytes()
+
+        // 生成写入流
+        val armorOut = if (armor) ArmoredOutputStream(dst) else dst
+        BCPGOutputStream(PGPCompressedDataGenerator(getCompressionAlgorithmTags(compressAlgorithmEnum)).open(armorOut)).use { out ->
+            sign(bytes, out, privateKey, publicKey, fileName, modifyTime, hashAlgorithmEnum)
+        }
+        if (armor) armorOut.close()
+    }
+
+    /**
+     * 将bytes签名，并写入outStream流
+     */
+    private fun sign(
+        bytes: ByteArray, outStream: OutputStream,
+        privateKey: PGPPrivateKey, publicKey: PGPPublicKey,
+        fileName: String, modifyTime: Long, hashAlgorithmEnum: HashAlgorithmEnum
+    ) {
         // 创建签名生成器，并初始化
         val sGen = PGPSignatureGenerator(publicKey.algorithm, getHashAlgorithmTags(hashAlgorithmEnum), "BC")
         sGen.initSign(PGPSignature.BINARY_DOCUMENT, privateKey)
-
         // 在签名生成器中增加hash标识子包，标识使用的签名公钥对的userID
         val userIDs = publicKey.userIDs
         if (userIDs.hasNext()) {
@@ -295,61 +389,63 @@ object PGPUtils {
                 this.setSignerUserID(false, userIDs.next() as String)
             }.generate())
         }
-        
-        // 生成写入流
-        val armorOut = if (armor) ArmoredOutputStream(dst) else dst
-        BCPGOutputStream(PGPCompressedDataGenerator(getCompressionAlgorithmTags(compressAlgorithmEnum)).open(armorOut)).use { out ->
-
-            // 写入OnePassVersion标识
-            sGen.generateOnePassVersion(false).encode(out)
-            
-            // 使用文字数据包装流写入原始内容
-            PGPLiteralDataGenerator().open(out, PGPLiteralData.BINARY, fileName, bytes.size.toLong(), Date(modifyTime)).use {
-                it.write(bytes)
-            }
-
-            // 使用签名生成器生成并写入签名流
-            sGen.update(bytes)
-            sGen.generate().encode(out)
+        // 写入签名
+        // 写入OnePassVersion标识
+        sGen.generateOnePassVersion(false).encode(outStream)
+        // 使用文字数据包装流写入原始内容
+        PGPLiteralDataGenerator().open(outStream, PGPLiteralData.BINARY, fileName, bytes.size.toLong(), Date(modifyTime)).use {
+            it.write(bytes)
         }
-        if (armor) armorOut.close()
+        // 使用签名生成器生成并写入签名流
+        sGen.update(bytes)
+        sGen.generate().encode(outStream)
     }
 
     /**
      * 对输入的签名流执行校验
      */
-    private fun verify(
-        src: InputStream, publicKey: PGPPublicKey
-    ): ByteArray {
+    private fun verify(src: InputStream, publicKey: PGPPublicKey): ByteArray {
         // 拆包获取数据
         val compressedData = PGPObjectFactory(PGPUtil.getDecoderStream(src)).nextObject()
         if (compressedData !is PGPCompressedData) throw BankException("the first object in sign file must be PGPCompressedData")
         val objectFactory = PGPObjectFactory(compressedData.dataStream)
-        
+        return verify(objectFactory, publicKey)
+    }
+
+    private fun verify(objectFactory: PGPObjectFactory, publicKey: PGPPublicKey): ByteArray {
         val onePassSignatureList = objectFactory.nextObject()
         if (onePassSignatureList !is PGPOnePassSignatureList) throw BankException("the first object in compressedData must be PGPOnePassSignatureList")
         if (onePassSignatureList.isEmpty) throw BankException("the onePassSignatureList must have at least one item")
         val onePassSignature = onePassSignatureList.get(0)
         if (onePassSignature !is PGPOnePassSignature) throw BankException("the item of the onePassSignatureList must be PGPOnePassSignature")
-        
+
         val literalData = objectFactory.nextObject()
         if (literalData !is PGPLiteralData) throw BankException("the second object in compressedData must be PGPLiteralData")
         // 获取原始内容
         val bytes = literalData.inputStream.readBytes()
-        
+
         val signatureList = objectFactory.nextObject()
         if (signatureList !is PGPSignatureList) throw BankException("the third object in compressedData must be PGPSignatureList")
         if (signatureList.isEmpty) throw BankException("the signatureList must have at least one item")
         val signature = signatureList.get(0)
 
+        // 使用公钥对原始内容进行签名验证
+        verify(onePassSignature, bytes, signature, publicKey)
+
+        // 返回原始内容
+        return bytes
+    }
+    
+    /**
+     * 使用公钥对原始内容进行签名验证
+     */
+    private fun verify(onePassSignature: PGPOnePassSignature, bytes: ByteArray, signature: PGPSignature, publicKey: PGPPublicKey) {
         // 初始化验证
         onePassSignature.initVerify(publicKey, "BC")
         // update内容
         onePassSignature.update(bytes)
         // 判断签名是否可以验证
         if (!onePassSignature.verify(signature)) throw BankException("verify failed")
-        // 返回原始内容
-        return bytes
     }
     
     /**
@@ -553,21 +649,37 @@ import kotlin.io.path.outputStream
 @Suppress("SameParameterValue") // IDEA飘黄太烦人了，关闭警告吧！！！
 class PGPUtilsTest {
 
-    private val srcPath = "/Users/bin/MIB/测试使用/pgp/test.txt"
+    private val dir = "/Users/bin/MIB/测试使用/pgp_test"
     
-    private val keyId = "2D244B72A87B7DD2"
-    private val secretKeyHolder = PGPUtils.SecretKeyHolder(Paths.get("/Users/bin/MIB/测试使用/pgp/private-key.txt").inputStream(), keyId, "123456")
-    private val publicKeyHolder = PGPUtils.PublicKeyHolder(Paths.get("/Users/bin/MIB/测试使用/pgp/public-key.txt").inputStream(), keyId)
-    private val encryptPath = "/Users/bin/MIB/测试使用/pgp/test-enc.asc"
-    private val decryptPath = "/Users/bin/MIB/测试使用/pgp/test-dec.txt"
+    private val srcPath = "$dir/test.txt"
     
-    private val keyId1 = "BF999AD71502F790"
-    private val secretKeyHolder1 = PGPUtils.SecretKeyHolder(Paths.get("/Users/bin/MIB/测试使用/pgp/private-key.txt").inputStream(), keyId1, "123456")
-    private val publicKeyHolder1 = PGPUtils.PublicKeyHolder(Paths.get("/Users/bin/MIB/测试使用/pgp/public-key.txt").inputStream(), keyId1)
-    private val signPath = "/Users/bin/MIB/测试使用/pgp/test-sign.asc"
-    private val verifyPath = "/Users/bin/MIB/测试使用/pgp/test-verify.txt"
-    private val signPath2 = "/Users/bin/MIB/测试使用/pgp/test-sign2.asc"
-    private val verifyPath2 = "/Users/bin/MIB/测试使用/pgp/test-verify2.txt"
+    private val encryptKeyId = "2D244B72A87B7DD2"
+    private val signKeyId = "53FFBCC0540B2100"
+    
+    private val encryptPublicKeyHolder = Paths.get("$dir/mib_test-public-key.asc").inputStream().use { 
+        PGPUtils.PublicKeyHolder(it, encryptKeyId)
+    }
+
+    private val encryptSecretKeyHolder = Paths.get("$dir/mib_test-secret-key.asc").inputStream().use {
+        PGPUtils.SecretKeyHolder(it, encryptKeyId, "123456")
+    }
+
+    private val signPublicKeyHolder = Paths.get("$dir/test_bbva_mib_peru-public-key.asc").inputStream().use {
+        PGPUtils.PublicKeyHolder(it, signKeyId)
+    }
+
+    private val signSecretKeyHolder = Paths.get("$dir/test_bbva_mib_peru-secret-key.asc").inputStream().use {
+        PGPUtils.SecretKeyHolder(it, signKeyId, "123456")
+    }
+
+    private val encryptPath = "$dir/test-enc.txt"
+    private val decryptPath = "$dir/test-dec.txt"
+    private val signPath = "$dir/test-sign.txt"
+    private val verifyPath = "$dir/test-verify.txt"
+    private val clearTextSignPath = "$dir/test-clear-text-sign.txt"
+    private val clearTextVerifyPath = "$dir/test-clear-text-verify.txt"
+    private val encryptSignPath = "$dir/test-enc-sign.txt"
+    private val decryptVerifyPath = "$dir/test-dec-verify.txt"
     
     // ------------------------------------加密------------------------------------
     @Test
@@ -659,40 +771,59 @@ class PGPUtilsTest {
     // ------------------------------------clear text签名------------------------------------
     @Test
     fun testClearTextSignAndVerify() {
-        clearTextSign(srcPath, signPath2)
-        clearTextVerify(signPath2, verifyPath2)
-        assert(srcPath contentEquals verifyPath2)
+        clearTextSign(srcPath, clearTextSignPath)
+        clearTextVerify(clearTextSignPath, clearTextVerifyPath)
+        assert(srcPath contentEquals clearTextVerifyPath)
     }
 
     @Test
     fun testClearTextSignByTerminalAndVerify() {
-        clearTextSignByTerminal(srcPath, signPath2)
-        clearTextVerify(signPath2, verifyPath2)
-        assert(srcPath contentEquals verifyPath2)
+        clearTextSignByTerminal(srcPath, clearTextSignPath)
+        clearTextVerify(clearTextSignPath, clearTextVerifyPath)
+        assert(srcPath contentEquals clearTextVerifyPath)
     }
 
     @Test
     fun testClearTextSignAndVerifyByTerminal() {
-        clearTextSign(srcPath, signPath2)
-        clearTextVerifyByTerminal(signPath2, verifyPath2)
-        assert(srcPath contentEquals verifyPath2)
+        clearTextSign(srcPath, clearTextSignPath)
+        clearTextVerifyByTerminal(clearTextSignPath, clearTextVerifyPath)
+        assert(srcPath contentEquals clearTextVerifyPath)
+    }
+
+    // ------------------------------------加密同时签名------------------------------------
+    @Test
+    fun testESAndDV() {
+        encryptWithSign(srcPath, encryptSignPath)
+        decryptWithVerify(encryptSignPath, decryptVerifyPath)
+    }
+
+    @Test
+    fun testESByTerminalAndDV() {
+        encryptWithSignByTerminal(srcPath, encryptSignPath)
+        decryptWithVerify(encryptSignPath, decryptVerifyPath)
+    }
+
+    @Test
+    fun testESAndDVByTerminal() {
+        encryptWithSign(srcPath, encryptSignPath)
+        decryptWithVerifyByTerminal(encryptSignPath, decryptVerifyPath)
+    }
+
+    @Test
+    fun testESByTerminalAndDVByTerminal() {
+        encryptWithSignByTerminal(srcPath, encryptSignPath)
+        decryptWithVerifyByTerminal(encryptSignPath, decryptVerifyPath)
     }
     
-    private infix fun String.contentEquals(dstPath: String): Boolean {
-        Paths.get(this).inputStream().use { src1->
-            Paths.get(dstPath).inputStream().use { src2->
-                val bytes1 = src1.readBytes()
-                val bytes2 = src2.readBytes()
-                return Arrays.areEqual(bytes1, bytes2)
-            }
-        }
-    }
     
+    // ------------------------------------辅助函数------------------------------------
+
+    // ------------------------------------加密和解密------------------------------------
     private fun encrypt(srcPath: String, encryptPath: String) {
         removeFile(encryptPath)
         Paths.get(srcPath).inputStream().use { src->
             Paths.get(encryptPath).outputStream().use { dst ->
-                publicKeyHolder.encrypt(src, dst, "test.txt", withIntegrityCheck = true)
+                encryptPublicKeyHolder.encrypt(src, dst, "test.txt")
             }
         }
     }
@@ -701,7 +832,7 @@ class PGPUtilsTest {
         removeFile(encryptPath)
         Paths.get(srcPath).inputStream().use { src->
             Paths.get(encryptPath).outputStream().use { dst ->
-                publicKeyHolder.encrypt(src, dst, "test.txt", armor = true, withIntegrityCheck = true)
+                encryptPublicKeyHolder.encrypt(src, dst, "test.txt", armor = true)
             }
         }
     }
@@ -710,33 +841,35 @@ class PGPUtilsTest {
         removeFile(decryptPath)
         Paths.get(encryptPath).inputStream().use { src->
             Paths.get(decryptPath).outputStream().use { dst->
-                secretKeyHolder.decrypt(src, dst)
+                encryptSecretKeyHolder.decrypt(src, dst)
             }
         }
     }
-    
+
     private fun encryptByTerminal(srcPath: String, encryptPath: String) {
         removeFile(encryptPath)
-        // --force-mdc --rfc2440选项是为了禁用到AEAD，因为AEAD加密还在草案中，它会产生Packet Tag为20的包，这不属于RFC 4880定义的，BC的1。46版本没有实现它
-        executeByTerminal("gpg -r $keyId --output $encryptPath --force-mdc --rfc2440 --encrypt $srcPath")
+        // ----rfc4880选项是为了禁用到AEAD，因为AEAD加密还在草案中，它会产生Packet Tag为20的包，这不属于RFC 4880定义的，BC的1.46版本没有实现它
+        executeByTerminal("gpg -r $encryptKeyId --output $encryptPath --rfc4880 --encrypt $srcPath")
     }
 
     private fun encryptByTerminalArmor(srcPath: String, encryptPath: String) {
         removeFile(encryptPath)
-        // --force-mdc --rfc2440选项是为了禁用到AEAD，因为AEAD加密还在草案中，它会产生Packet Tag为20的包，这不属于RFC 4880定义的，BC的1。46版本没有实现它
-        executeByTerminal("gpg -r $keyId --armor --output $encryptPath --force-mdc --rfc2440 --encrypt $srcPath")
+        // ----rfc4880选项是为了禁用到AEAD，因为AEAD加密还在草案中，它会产生Packet Tag为20的包，这不属于RFC 4880定义的，BC的1.46版本没有实现它
+        executeByTerminal("gpg -r $encryptKeyId --armor --output $encryptPath --rfc4880 --encrypt $srcPath")
     }
     
     private fun decryptByTerminal(encryptPath: String, decryptPath: String) {
         removeFile(decryptPath)
         executeByTerminal("gpg --pinentry-mode loopback --passphrase 123456 --output $decryptPath --decrypt $encryptPath")
     }
+
+    // ------------------------------------签名和验证------------------------------------
     
     private fun sign(srcPath: String, signPath: String) {
         removeFile(signPath)
         Paths.get(srcPath).inputStream().use { src->
             Paths.get(signPath).outputStream().use { dst ->
-                secretKeyHolder1.sign(src, dst, "test.txt")
+                signSecretKeyHolder.sign(src, dst, "test.txt")
             }
         }
     }
@@ -745,7 +878,7 @@ class PGPUtilsTest {
         removeFile(signPath)
         Paths.get(srcPath).inputStream().use { src->
             Paths.get(signPath).outputStream().use { dst ->
-                secretKeyHolder1.sign(src, dst, "test.txt", armor = true)
+                signSecretKeyHolder.sign(src, dst, "test.txt", armor = true)
             }
         }
     }
@@ -754,7 +887,7 @@ class PGPUtilsTest {
         removeFile(verifyPath)
         Paths.get(signPath).inputStream().use { src->
             Paths.get(verifyPath).outputStream().use { dst ->
-                assert(publicKeyHolder1.forceVerify(src, dst))
+                signPublicKeyHolder.verifyAndWrite(src, dst)
             }
         }
     }
@@ -763,7 +896,7 @@ class PGPUtilsTest {
         removeFile(signPath)
         Paths.get(srcPath).inputStream().use { src->
             Paths.get(signPath).outputStream().use { dst ->
-                secretKeyHolder1.clearTextSign(src, dst)
+                signSecretKeyHolder.clearTextSign(src, dst)
             }
         }
     }
@@ -772,19 +905,19 @@ class PGPUtilsTest {
         removeFile(verifyPath)
         Paths.get(signPath).inputStream().use { src->
             Paths.get(verifyPath).outputStream().use { dst ->
-                assert(publicKeyHolder1.forceClearTextVerify(src, dst))
+                signPublicKeyHolder.clearTextVerifyAndWrite(src, dst)
             }
         }
     }
 
     private fun signByTerminal(srcPath: String, signPath: String) {
         removeFile(signPath)
-        executeByTerminal("gpg --pinentry-mode loopback --passphrase 123456 -u $keyId1 --output $signPath -s $srcPath")
+        executeByTerminal("gpg --pinentry-mode loopback --passphrase 123456 -u $signKeyId --output $signPath -s $srcPath")
     }
     
     private fun signByTerminalArmor(srcPath: String, signPath: String) {
         removeFile(signPath)
-        executeByTerminal("gpg --pinentry-mode loopback --passphrase 123456 -u $keyId1 --armor --output $signPath -s $srcPath")
+        executeByTerminal("gpg --pinentry-mode loopback --passphrase 123456 -u $signKeyId --armor --output $signPath -s $srcPath")
     }
     
     private fun verifyByTerminal(signPath: String, verifyPath: String) {
@@ -794,12 +927,53 @@ class PGPUtilsTest {
     
     private fun clearTextSignByTerminal(srcPath: String, signPath: String) {
         removeFile(signPath)
-        executeByTerminal("gpg --pinentry-mode loopback --passphrase 123456 -u $keyId1 --output $signPath -a --clear-sign $srcPath")
+        executeByTerminal("gpg --pinentry-mode loopback --passphrase 123456 -u $signKeyId --output $signPath -a --clear-sign $srcPath")
     }
     
     private fun clearTextVerifyByTerminal(signPath: String, verifyPath: String) {
         removeFile(verifyPath)
         executeByTerminal("gpg --output $verifyPath --verify $signPath")
+    }
+
+    // ------------------------------------加密同时签名和解密同时验证------------------------------------
+    private fun encryptWithSign(srcPath: String, encryptSignPath: String) {
+        removeFile(encryptSignPath)
+        Paths.get(srcPath).inputStream().use { src->
+            Paths.get(encryptSignPath).outputStream().use { dst ->
+                encryptPublicKeyHolder.encryptWithSign(src, dst,  signSecretKeyHolder, "test.txt")
+            }
+        }
+    }
+    
+    private fun decryptWithVerify(encryptSignPath: String, decryptVerifyPath: String) {
+        removeFile(decryptVerifyPath)
+        Paths.get(encryptSignPath).inputStream().use { src->
+            Paths.get(decryptVerifyPath).outputStream().use { dst -> 
+                encryptSecretKeyHolder.decryptWithSignAndWrite(src, dst,  signPublicKeyHolder)
+            }
+        }
+    }
+
+    private fun encryptWithSignByTerminal(srcPath: String, encryptSignPath: String) {
+        removeFile(encryptSignPath)
+        executeByTerminal("gpg --output $encryptSignPath --rfc4880  -r $encryptKeyId --encrypt -u $signKeyId --sign $srcPath")
+    }
+
+    private fun decryptWithVerifyByTerminal(encryptSignPath: String, decryptVerifyPath: String) {
+        removeFile(decryptVerifyPath)
+        executeByTerminal("gpg --pinentry-mode loopback --passphrase 123456 --output $decryptVerifyPath --decrypt $encryptSignPath")
+    }
+    
+    // ------------------------------------辅助函数------------------------------------
+    
+    private infix fun String.contentEquals(dstPath: String): Boolean {
+        Paths.get(this).inputStream().use { src1->
+            Paths.get(dstPath).inputStream().use { src2->
+                val bytes1 = src1.readBytes()
+                val bytes2 = src2.readBytes()
+                return Arrays.areEqual(bytes1, bytes2)
+            }
+        }
     }
     
     private fun executeByTerminal(command: String) {
