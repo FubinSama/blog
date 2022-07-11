@@ -5,7 +5,7 @@
 
 ## gpg命令行工具的常用命令
 
-> 注意GPG命令行工具2.3.0版本默认会使用还在草案中的AEAD加密，该加密方式引入了新的[AEAD Encrypted Data Packet (Tag 20)](https://tools.ietf.org/id/draft-ietf-openpgp-rfc4880bis-06.html#rfc.section.5.16)，用这种方式加密的数据，无法用1.6版本的bcpg解密。1.47有人提issue了，不知道啥时候有人提PR，并merge。想要使用原来的MDC加密方式，需要添加额外的选项参数`--force-mdc --rfc2440`，即：`gpg --force-mdc --rfc2440 --decrypt [file name]`
+> 注意GPG命令行工具2.3.0版本默认会使用还在草案中的AEAD加密，该加密方式引入了新的[AEAD Encrypted Data Packet (Tag 20)](https://tools.ietf.org/id/draft-ietf-openpgp-rfc4880bis-06.html#rfc.section.5.16)，用这种方式加密的数据，无法用1.6版本的bcpg解密。1.47有人提issue了，不知道啥时候有人提PR，并merge。想要使用原来的MDC加密方式，需要添加额外的选项参数`--rfc4880`，即：`gpg --rfc4880 --decrypt [file name]`
 
 基本使用可以看阮一峰的[GPG入门教程](https://www.ruanyifeng.com/blog/2013/07/gpg.html)
 
