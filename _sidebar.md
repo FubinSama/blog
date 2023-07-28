@@ -1,11 +1,15 @@
 - JAVA和Kotlin
+  - [AQS](./JAVA和Kotlin/AQS.md)
   - [EffectivceJava](./JAVA和Kotlin/EffectivceJava.md)
+  - [Executor](./JAVA和Kotlin/Executor.md)
   - [JAVA基础](./JAVA和Kotlin/JAVA基础.md)
   - [JDK9内存顺序模型](./JAVA和Kotlin/JDK9内存顺序模型.md)
   - [JVM常用命令和选项](./JAVA和Kotlin/JVM常用命令和选项.md)
   - [Java多线程](./JAVA和Kotlin/Java多线程.md)
+  - [Java语言规范](./JAVA和Kotlin/Java语言规范.md)
   - [Kotlin基础](./JAVA和Kotlin/Kotlin基础.md)
   - [MyBatis](./JAVA和Kotlin/MyBatis.md)
+  - [Thread](./JAVA和Kotlin/Thread.md)
   - [编码小技巧总结](./JAVA和Kotlin/编码小技巧总结.md)
 - MQ
   - [AMPQ核心概念](./MQ/AMPQ核心概念.md)
@@ -71,6 +75,7 @@
   - [SpringApplication](./spring-boot/SpringApplication.md)
   - [SpringBootTest](./spring-boot/SpringBootTest.md)
   - [kotlin使用ConfigurationProperties注解](./spring-boot/kotlin使用ConfigurationProperties注解.md)
+  - [metrics](./spring-boot/metrics.md)
   - [spring-Core笔记](./spring-boot/spring-Core笔记.md)
 - spring-cloud
   - [分布式请求链路追踪](./spring-cloud/分布式请求链路追踪.md)
