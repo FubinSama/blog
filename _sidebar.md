@@ -77,6 +77,7 @@
   - [kotlin使用ConfigurationProperties注解](./spring-boot/kotlin使用ConfigurationProperties注解.md)
   - [metrics](./spring-boot/metrics.md)
   - [spring-Core笔记](./spring-boot/spring-Core笔记.md)
+  - [单例bean自动注入request](./spring-boot/单例bean自动注入request.md)
 - spring-cloud
   - [分布式请求链路追踪](./spring-cloud/分布式请求链路追踪.md)
   - [服务容错与断路器](./spring-cloud/服务容错与断路器.md)
