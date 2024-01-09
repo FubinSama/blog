@@ -65,6 +65,7 @@
     - [P5元数据查询](./mysql/MySQL%20CookBook笔记/P5元数据查询.md)
     - [P6字符串处理](./mysql/MySQL%20CookBook笔记/P6字符串处理.md)
   - [MySQL](./mysql/MySQL.md)
+  - [MySQL的serverTimezone](./mysql/MySQL的serverTimezone.md)
   - MySQL课程笔记
     - [1.MySQL架构介绍](./mysql/MySQL课程笔记/1.MySQL架构介绍.md)
     - [2.索引优化分析](./mysql/MySQL课程笔记/2.索引优化分析.md)
