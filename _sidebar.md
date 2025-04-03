@@ -1,15 +1,16 @@
 - JAVA和Kotlin
   - [AQS](./JAVA和Kotlin/AQS.md)
+  - [ASM](./JAVA和Kotlin/ASM.md)
   - [EffectivceJava](./JAVA和Kotlin/EffectivceJava.md)
   - [Executor](./JAVA和Kotlin/Executor.md)
   - [JAVA基础](./JAVA和Kotlin/JAVA基础.md)
-  - [JDK9内存顺序模型](./JAVA和Kotlin/JDK9内存顺序模型.md)
+  - [JAVA自动装箱和拆箱(AutoBox)](./JAVA和Kotlin/JAVA自动装箱和拆箱(AutoBox).md)
+  - [JDK源码阅读](./JAVA和Kotlin/JDK源码阅读.md)
+  - [JVM](./JAVA和Kotlin/JVM.md)
   - [JVM常用命令和选项](./JAVA和Kotlin/JVM常用命令和选项.md)
   - [Java多线程](./JAVA和Kotlin/Java多线程.md)
   - [Java语言规范](./JAVA和Kotlin/Java语言规范.md)
-  - [Kotlin基础](./JAVA和Kotlin/Kotlin基础.md)
   - [MyBatis](./JAVA和Kotlin/MyBatis.md)
-  - [Thread](./JAVA和Kotlin/Thread.md)
   - [编码小技巧总结](./JAVA和Kotlin/编码小技巧总结.md)
 - MQ
   - [AMPQ核心概念](./MQ/AMPQ核心概念.md)
@@ -50,6 +51,7 @@
 - maven
   - [Sonatype_Nexus私服](./maven/Sonatype_Nexus私服.md)
   - [maven概述](./maven/maven概述.md)
+  - [maven笔记](./maven/maven笔记.md)
   - [pom文件详解](./maven/pom文件详解.md)
   - [一个简单的maven插件](./maven/一个简单的maven插件.md)
   - [创建一个简单的maven原型](./maven/创建一个简单的maven原型.md)
@@ -72,6 +74,8 @@
     - [3.查询截取分析](./mysql/MySQL课程笔记/3.查询截取分析.md)
     - [4.MySQL锁机制](./mysql/MySQL课程笔记/4.MySQL锁机制.md)
     - [5.主从复制](./mysql/MySQL课程笔记/5.主从复制.md)
+  - Mybatis-3
+    - [重塑认知](./mysql/Mybatis-3/重塑认知.md)
 - spring-boot
   - [SpringApplication](./spring-boot/SpringApplication.md)
   - [SpringBootTest](./spring-boot/SpringBootTest.md)
@@ -88,6 +92,8 @@
   - [网关gateway](./spring-cloud/网关gateway.md)
   - [远程过程调用与负载均衡](./spring-cloud/远程过程调用与负载均衡.md)
   - [马丁熔断器论文](./spring-cloud/马丁熔断器论文.md)
+- 代码小抄
+  - [CompletableFuture](./代码小抄/CompletableFuture.md)
 - 基本定义
   - [URI](./基本定义/URI.md)
 - 支付相关
@@ -95,7 +101,9 @@
   - [Nequi还款回调文档](./支付相关/Nequi还款回调文档.md)
   - [Plaid&TabaPay](./支付相关/Plaid&TabaPay.md)
   - [基于BouncyCastle实现的PGP工具类](./支付相关/基于BouncyCastle实现的PGP工具类.md)
+  - [手机钱包时序](./支付相关/手机钱包时序.md)
   - [支付术语总结](./支付相关/支付术语总结.md)
+  - [支付网关](./支付相关/支付网关.md)
   - [注意事项](./支付相关/注意事项.md)
   - [签名相关的Kotlin模板](./支付相关/签名相关的Kotlin模板.md)
 - 数学
@@ -138,8 +146,10 @@
 - 编译原理
   - [综述](./编译原理/综述.md)
 - 网络
+  - [Http请求跟踪](./网络/Http请求跟踪.md)
   - [基本知识](./网络/基本知识.md)
 - 解决方案
   - [IDEA](./解决方案/IDEA.md)
   - [IP&PORT](./解决方案/IP&PORT.md)
+  - [SpringCloudGateway与gzip](./解决方案/SpringCloudGateway与gzip.md)
   - [logback](./解决方案/logback.md)
