@@ -13,7 +13,7 @@
 
 ### 通过配置`pom.xml`文件，对site进行配置
 
-我们以为`gswm`项目(详见[基于Maven构建简单的Java项目](./基于Maven构建一个简单的Java项目.md))生成site站点为例，介绍如何使用`maven site`生命周期创建项目的站点
+我们以为`gswm`项目(详见[基于Maven构建简单的Java项目](maven/基于Maven构建一个简单的Java项目)生成site站点为例，介绍如何使用`maven site`生命周期创建项目的站点
 
 首先，我们修改`maven-site-plugin`和`maven-project-info-reports-plugin`插件的版本。为此，我们要在`pom.xml`的`<build />`元素中加入相应的配置：
 
