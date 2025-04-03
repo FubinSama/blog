@@ -36,7 +36,7 @@ cat /dev/null > pom.xml
 vim pom.xml
 ```
 
-在`pom.xml`文件中添加如下内容，详见[pom文件详解](./pom文件详解.md)查看pom文件介绍：
+在`pom.xml`文件中添加如下内容，详见[pom文件详解](maven/pom文件详解)查看pom文件介绍：
 
 ```XML
 <?xml version="1.0" encoding="UTF-8"?>
