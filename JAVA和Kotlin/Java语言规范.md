@@ -675,13 +675,13 @@ _BinaryExponentIndicator_:
 
 - 当exponent为全0时：
   - 如果fraction为全0，则表示±0
-  - 如果fraction不为全0，则为非规约形式，表示0~1的数，fraction的所有的位数表示小数部分，其整数部分为0
+  - 如果fraction不为全0，则为非规范形式，表示0~1的数，fraction的所有的位数表示小数部分，其整数部分为0
 - 当exponent为$2^e-1$，即全1时：
   - 如果fraction为全0，则表示±无穷
   - 如果fraction不为全0，则为非数NaN
-- 当exponent为$1～2^e-2$，即不为全0，也不会全1时，fraction的所有的位数表示小数部分，其整数部分为1。
+- 当exponent为$1～2^e-2$，即不为全0，也不为全1时，fraction的所有的位数表示小数部分，其整数部分为1。
 
-另外exponent是要表示带有正负的指数的，所以它的实际值是要减去一个bais偏移量（值为$2^{e-1}-1$，其中`e`为exponent所占的位数）。
+另外exponent是要表示带有正负的指数的，所以它的实际值是要减去一个bias偏移量（值为$2^{e-1}-1$，其中`e`为exponent所占的位数）。
 
 - 对于`float`类型，`exponent`占8位，`fraction`占23位。
 - 对于`double`类型，`exponent`占11位，`fraction`占52位。
@@ -889,4 +889,537 @@ _Operator_:
 ​	+=	-=	*=	/=	&=	|=	^=	%=	<<=	>>=	>>>=
 
 ## 类型、值和变量（Types, Values and Variables）
+
+Java编程语言是一种静态类型语言，这意味着每个变量和每个表达式都有一个在编译时就已知的类型。
+
+Java编程语言也是一种强类型语言，因为类型限制了变量可以保存的值或表达式可以产生的值，限制了对这些值支持的操作，并决定了操作的含义。强静态类型有助于在编译时检测错误。
+
+Java编程语言的类型分为两类：基本类型和引用类型。详见引言对应部分。
+
+### 类型和值的种类
+
+_Type_:
+
+​	_PrimitiveType_
+
+​	_ReferenceType_
+
+还有一种特殊的空类型，即表达式`null`的类型，它没有名称。
+
+因为空类型没有名称，所以无法声明空类型的变量或转换为空类型。
+
+空引用是null类型表达式唯一可能的值。
+
+空引用始终可以赋值给任何引用类型，或转换为任何引用类型。
+
+### 基本类型和值
+
+_PrimitiveType_:
+
+​	{_Annotation_} _NumericType_
+
+​	{_Annotation_} boolean
+
+_NumericType_:
+
+​	_IntegeralType_
+
+​	_FloatingPointType_
+
+_IntegralType_:
+
+​	_(one of)_
+
+​	byte short int long char
+
+_FloatingPointType_:
+
+​	_(one of)_
+
+​	float double
+
+基本值不会与其他基本值共享状态。
+
+#### 整型类型和值（Integral Types and Values）
+
+整型类型的值为以下范围内的整数：
+
+- `byte`：从`-128`到`127`
+- `short`：从`-32768`到`32767`
+- `int`：从`-2147483648`到`2147483647`
+- `long`：从`-9223372036854775808`到`9223372036854775807`
+- `char`：从`0`到`65535`，即从`\u0000`到`\uffff`
+
+#### 整数运算
+
+Java编程语言提供了一些作用于整数值的运算符：
+
+- 比较运算符，会生成一个`boolean`类型的值：
+  - `<`，`<=`，`>`和`>=`
+  - `==`和`!=`
+- 数值运算符，其结果为`int`或`long`类型的值：
+  - 一元加减运算符：`+`和`-`
+  - 乘法运算符：`*`，`/`和`%`
+  - 加法运算符：`+`和`-`
+  - 自增运算符：`++`，包括前缀和后缀形式
+  - 自减运算符：`--`，包括前缀和后缀形式
+  - 有符号和无符号的移位运算符：`<<`，`>>`和`>>>`
+  - 按位求补运算符：`~`
+  - 整数按位运算符：`&`，`^`和`|`
+- 条件运算符：`? :`
+- 强制类型转换运算符，它可以将整数值转化为任何指定数值类型的值
+- 字符串连接运算符：`+`，当给定一个字符串操作数和一个整数操作数时，他会将整数操作数转换为其十进制的字符串，然后生成一个新创建的字符串，该字符串是这两个字符串的连接结果。
+
+其它有用的构造函数、方法和常量在`Byte`，`Short`，`Integer`，`Long`和`Character`类中被预先定义。
+
+如果整数运算符（移位运算符除外）至少有一个操作数的类型为 `long`，那么将使用 64 位精度执行该运算，并且数值运算符的结果类型为 `long`。如果另一个操作数不是 `long` 类型，则首先通过数值提升将其拓宽为 `long` 类型。
+
+否则，操作将使用32位精度执行，并且数值运算符的结果类型为`int`。如果任一操作数不是`int`类型，则首先通过数值提升将其拓宽为`int`类型。
+
+任何整型的任何值都可以转换为任何数值类型，也可以从任何数值类型转换而来。整型和布尔类型之间无法进行转换。
+
+整数运算符不会以任何方式指示溢出或下溢。
+
+整数运算符可能因以下原因抛出异常：
+
+- 如果需要对空引用进行拆箱转换，任何整数运算符都可能抛出`NullPointerException`。
+- 整数除法运算符`/`和整数取余运算符`%`在右操作数为零时可能会抛出`ArithmeticException`异常。
+- 如果需要装箱转换，且没有足够的可用内存来执行该转换，那么自增运算符`++`和自减运算符`--`可能会抛出`OutOfMemoryError`。
+
+#### 浮点类型、格式和值（Floating-Point Types, Formats, and Values）
+
+每一个Java编程语言的实现都必须支持两组标准的浮点值集合，分别称为float值集和double值集。此外，Java编程语言的实现可以支持两种扩展指数浮点值集中的一种或两种，分别称为float扩展指数值集和double扩展指数值集。在某些情况下，可以使用这些扩展指数值集来代替标准值集，以表示float或double类型表达式的值。（Java是不允许程序员直接选择扩展数值集的，是否启用，取决于JVM实现和编译器的策略，一般是在寄存器中计算临时值时，JVM使用更高精度的扩展数值集，但是从JDK1.2起，HotSpot JVM默认就不会启用扩展精度浮点寄存器了。编写的Java代码不应该依赖于这些特性，所以这里省略扩展指数值集的描述，标准指数值集的相关描述已经在引言写了，所以这里也省略了）
+
+除了NaN之外，浮点值是有序的；从小到大排列依次为负无穷大、负有限非零值、正零和负零、正有限非零值以及正无穷大。
+
+正零和负零比较时相等；因此，表达式\(`0.0==-0.0`)的结果为true，而`0.0 > -0.0`的结果为false。但是其他运算可以区分正零和负零；例如，`1.0/0.0`的值为正无穷，而`1.0/-0.0`的值为负无穷。
+
+NaN是无序的，因此：
+
+- 如果任一操作数或两个操作数均为NaN，数值比较运算符`<`、`<=`、`>`和`>=`将返回false。
+- 如果任一操作数为 NaN，相等运算符`==`将返回 false。特别地，如果x或y为 NaN，则` (x<y)==!(x>=y) `将为 false。
+- 如果任一操作数为NaN，不等运算符`!= `返回true。
+
+具体来说，当且仅当x为非数（NaN）时，`(x != x)`才为true。
+
+#### 浮点运算
+
+Java编程语言提供了一些作用于浮点值的运算符：
+
+- 比较运算符，其结果为布尔类型的值：
+  - 数值比较运算符`<`、`<=`、`>`和`>=`
+  - 数值相等运算符`==`和`!=`
+- 数值运算符，其结果为`float`或`double`类型的值：
+  - 一元加运算符和减运算符`+`和`-`
+  - 乘法运算符`*`、`/`和`%`
+  - 加法运算符`+`和`-`
+  - 自增运算符`++`，包括前缀式和后缀式
+  - 自减运算符`--`，包括前缀式和后缀式
+- 条件运算符`? :`
+- 强制类型转换运算符，可将浮点值转换为任何指定数值类型的值 
+- 字符串连接运算符`+`，当该运算符的操作数分别为一个字符串和一个浮点值时，会将浮点值操作数转换为表示其十进制形式值的字符串（无信息损失），然后通过连接这两个字符串生成一个新创建的字符串。 
+
+其他有用的构造函数、方法和常量在`Float`、`Double`和`Math`类中预先定义。
+
+如果二元运算符的操作数中至少有一个是浮点类型，那么该运算就是浮点运算，即使另一个是整数类型。
+
+如果数值运算符的操作数中至少有一个是`double`类型，那么将使用64位浮点运算执行该操作，并且数值运算符的结果是`double`类型的值。如果另一个操作数不是`double`类型，则首先通过数值提升将其拓宽为`double`类型。
+
+否则，运算将使用32位浮点算术执行，并且数值运算符的结果是`float`类型的值。（如果另一个操作数不是`float`类型，则首先通过数值提升将其扩展为`float`类型。）
+
+浮点型的任何值都可以转换为其他任何数值类型，也可以从其他任何数值类型转换而来。浮点型和布尔类型之间不存在类型转换。
+
+浮点数上的运算符按照IEEE 754的规定进行操作（取余运算符除外）。具体而言，Java编程语言要求支持IEEE 754非规范化浮点数和渐进下溢，这使得证明特定数值算法的理想特性变得更加容易。如果计算结果是非规范化数，浮点运算不会 “舍入为零”。 (这里的意思是说Java是按照IEEE 754标准实现的，引入了可以表示很小的值的非规范化数，计算结果是非规范数时，要使用非规范化数表示，而不是跟没有非规范化数时一样，直接舍入到0)
+
+Java编程语言要求浮点运算的行为就好像每个浮点运算符都将其浮点结果舍入到结果精度一样。**不精确的结果必须舍入到最接近无限精确结果的可表示值；如果两个最接近的可表示值距离相等，则选择其最低有效位为零的值。这是IEEE 754标准的默认舍入模式，称为“四舍五入到最接近值”。 **
+
+**Java编程语言在将浮点值转换为整数时采用向零舍入，在这种情况下，就好像对数字进行了截断，丢弃了尾数部分。**向零舍入选择的结果是该格式中最接近且绝对值不大于无限精确结果的值。 
+
+溢出的浮点运算会产生带符号的无穷大。
+
+一个发生下溢的浮点运算会产生一个非规范化值或一个带符号的零。
+
+没有数学确定结果的浮点运算会产生NaN。
+
+**任何以NaN作为操作数的数值运算，其结果都为NaN**。
+
+浮点运算符可能因以下原因抛出异常：
+
+- 如果需要对空引用进行拆箱转换，任何浮点运算符都可能抛出`NullPointerException`异常。
+- 如果需要装箱转换，并且没有足够的内存来执行该转换，那么自增和自减运算符`++`和`--`可能会抛出`OutOfMemoryError`。
+
+```java
+class Test {
+    public static void main(String[] args) {
+        System.out.println(getPrintString(Double.POSITIVE_INFINITY));
+        //  An example of overflow:
+        double d = 1e308;
+        System.out.println("overflow produces infinity: " + (d + "*10==" + (d * 10)) + ", bits: " + getPrintString(d * 10));
+        // An example of gradual underflow: d = 1e-305 * Math.PI; 
+        System.out.print("gradual underflow: " + d + "\n ");
+        for (int i = 0; i < 4; i++) System.out.println("\t" + (d /= 100_000) + ", bits: " + getPrintString(d));
+        System.out.println(); // An example of NaN: 
+        d = 0.0 / 0.0;
+        System.out.println("0.0/0.0 is Not-a-Number: "+ d + ", bits: " + getPrintString(d));
+        // An example of inexact results and rounding: 
+        System.out.print("inexact results with float:"); 
+        for (int i = 0; i < 100; i++) {
+            float z = 1.0f / i;
+            if (z * i != 1.0f) System.out.println(" " + i + ", bits: " + getPrintString(i));
+        }
+        System.out.println(); // Another example of inexact results and rounding: 
+        System.out.print("inexact results with double:");
+        for (int i = 0; i < 100; i++) {
+            double z = 1.0 / i;
+            if (z * i != 1.0) System.out.print(" " + i + ", bits: " + getPrintString(i));
+        }
+        System.out.println();
+        // An example of cast to integer rounding: 
+        System.out.print("cast to int rounds toward 0: "); 
+        d = 12345.6;
+        System.out.println((int) d + " " + (int) (-d));
+    }
+    
+    private static String getPrintString(double d) {
+        long dl = Double.doubleToRawLongBits(d);
+        String binaryStr = String.format("%64s", Long.toBinaryString(dl)).replace(' ', '0');
+        String sign = binaryStr.substring(0, 1); //  第1位为符号位
+        String exponent = binaryStr.substring(1, 12); // 然后的11位为exponent
+        String fraction = binaryStr.substring(12); // 最后的52位为fraction
+        long signLong = Long.parseLong(sign, 2);
+        String signPrint = signLong == 0 ? "+": "-";
+        long exponentLong = Long.parseLong(exponent, 2);
+        double exponentDouble = Double.longBitsToDouble(dl & 0x7ff0_0000_0000_0000L);
+        long fractionLong = Long.parseLong(fraction, 2);
+        double fractionDouble = Double.longBitsToDouble(dl & 0x000f_ffff_ffff_ffffL | 0x3ff0_0000_0000_0000L); // 取fraction，然后将exponent设置为bias=2^{n-1} - 1，即1023，从而表示指数部分为0的规范数
+        String signStr = signPrint + "(" + Long.toBinaryString(signLong) + ")";
+        String exponentStr = exponentDouble + "(" + Long.toBinaryString(exponentLong) + ")";
+        String fractionStr = fractionDouble + "(" + Long.toBinaryString(fractionLong) + ")";
+        return signStr + "|" + exponentStr + "|" + fractionStr;
+    }
+
+    private static String getPrintString(float f) {
+        int fi = Float.floatToRawIntBits(f);
+        String binaryStr = String.format("%32s", Long.toBinaryString(fi)).replace(' ', '0');
+        String sign = binaryStr.substring(0, 1); //  第1位为符号位
+        String exponent = binaryStr.substring(1, 9); // 然后的8位为exponent
+        String fraction = binaryStr.substring(9); // 最后的23位为fraction
+        int signInt = Integer.parseInt(sign, 2);
+        String signPrint = signInt == 0 ? "+": "-";
+        int exponentInt = Integer.parseInt(exponent, 2);
+        float exponentFloat = Float.intBitsToFloat(fi & 0x7f80_0000);
+        int fractionInt = Integer.parseInt(fraction, 2);
+        float fractionFloat = Float.intBitsToFloat(fi & 0x007f_ffff | 0x3f80_0000); // 取fraction，然后将exponent设置为bias=2^{n-1} - 1，即127，从而表示指数部分为0的规范数
+        String signStr = signPrint + "(" + Long.toBinaryString(signInt) + ")";
+        String exponentStr = exponentFloat + "(" + Integer.toBinaryString(exponentInt) + ")";
+        String fractionStr = fractionFloat + "(" + Integer.toBinaryString(fractionInt) + ")";
+        return signStr + "|" + exponentStr + "|" + fractionStr;
+    }
+}
+```
+
+执行结果为：
+
+```plainText
++(0)|Infinity(11111111111)|1.0(0)
+overflow produces infinity: 1.0E308*10==Infinity, bits: +(0)|Infinity(11111111111)|1.0(0)
+gradual underflow: 1.0E308
+ 	1.0E303, bits: +(0)|6.857655085992111E302(11111101101)|1.4582244039112795(111010101001110001100011100110100000111001011011010)
+	1.0E298, bits: +(0)|5.231975621026696E297(11111011100)|1.9113238906945922(1110100101001100100001011100001010011000110001001100)
+	1.0E293, bits: +(0)|7.983361238138879E292(11111001100)|1.252605225005608(100000010101010101111000110110000110010101000111000)
+	9.999999999999999E287, bits: +(0)|6.0908212571249994E287(11110111011)|1.6418147205193503(1010010001001101111110000011001010111000110101000101)
+
+0.0/0.0 is Not-a-Number: NaN, bits: +(0)|Infinity(11111111111)|1.5(1000000000000000000000000000000000000000000000000000)
+inexact results with float: 0, bits: +(0)|0.0(0)|1.0(0)
+ 41, bits: +(0)|32.0(10000100)|1.28125(1001000000000000000000)
+ 47, bits: +(0)|32.0(10000100)|1.46875(1111000000000000000000)
+ 55, bits: +(0)|32.0(10000100)|1.71875(10111000000000000000000)
+ 61, bits: +(0)|32.0(10000100)|1.90625(11101000000000000000000)
+ 82, bits: +(0)|64.0(10000101)|1.28125(1001000000000000000000)
+ 83, bits: +(0)|64.0(10000101)|1.296875(1001100000000000000000)
+ 94, bits: +(0)|64.0(10000101)|1.46875(1111000000000000000000)
+ 97, bits: +(0)|64.0(10000101)|1.515625(10000100000000000000000)
+
+inexact results with double: 0, bits: +(0)|0.0(0)|1.0(0) 49, bits: +(0)|32.0(10000100)|1.53125(10001000000000000000000) 98, bits: +(0)|64.0(10000101)|1.53125(10001000000000000000000)
+cast to int rounds toward 0: 12345 -12345
+```
+
+关于浮点数运算有以下特殊处理：
+
+- 0.0 / 0.0 = NaN
+- NaN * 任何数 = NaN
+- NaN != NaN
+- f(非0.0和NaN，包括Infinity) / 0.0 = Infinity
+- f(非NaN和Infinity) * 0.0 = 0.0
+- Infinity * 0.0 = NaN
+
+#### boolean类型和boolean值
+
+布尔类型表示一种逻辑量，有两个可能的值，分别用字面量 `true` 和 `false` 表示。
+
+布尔运算符包括：
+
+- 关系运算符`==`和`!=`
+- 逻辑非运算符`!`
+- 逻辑运算符`&`，`^`和`|`
+- 条件与或运算符`&&`和`||`
+- 条件运算符`? :`
+- 字符串连接运算符`+`，当它有一个字符串操作数和一个布尔操作数时，会将布尔操作数转换为字符串（"true" 或 "false"），然后生成一个新创建的字符串，该字符串是这两个字符串的连接结果。 
+
+布尔表达式决定了几种语句中的控制流：
+
+- if语句
+- while语句
+- do语句
+- for语句
+
+布尔表达式还决定了在条件运算符`? :`中计算哪个子表达式。
+
+整数或浮点表达式 x 可以按照 C 语言的约定，通过表达式 (`x !=0`) 转换为布尔值，即任何非零值都为真。
+
+对象引用`obj`可以通过表达式`obj!=null`转换为布尔值，遵循C语言的约定，即除`null`之外的任何引用都为`true`。
+
+通过字符串转换，布尔值可以转换为字符串。
+
+布尔值可以强制转换为boolean、Boolean或Object类型。不允许对boolean类型进行其他强制转换。
+
+### 引用类型和值
+
+有四种引用类型：类类型（class types）、接口类型（interface types）、类型变量（type variables）和数组类型（array types）。
+
+_ReferenceType_:
+
+​	_ClassOrInterfaceType_
+
+​	_TypeVariable_
+
+​	_ArrayType_
+
+_ClassOrInterfaceType_:
+
+​	_ClassType_
+
+​	_InterfaceType_
+
+_ClassType_:
+
+​	{_Annotation_} _Identifier_ [_TypeArguments_]
+
+​	_ClassOrInterfaceType_ . {_Annotation_} _Identifier_ [_TypeArguments_]
+
+_InterfaceType_:
+
+​	_ClassType_
+
+_TypeVariable_:
+
+​	{_Annotation_} _Identifier_
+
+_ArrayType_:
+
+​	_PrimitiveType_ _Dims_
+
+​	_ClassOrInterfaceType_ _Dims_
+
+​	_TypeVariable_ _Dims_
+
+_Dims_:
+
+​	{_Annotation_} [ ] {{_Annotation_} [ ]}
+
+类或接口类型（_ClassOrInterfaceType_）由一个标识符或由`.`分隔的标识符序列组成，其中每个标识符后可选择性地跟类型参数（_TypeArguments_）。如果类型参数出现在类或接口类型的任何位置，则它是参数化类型（parameterized type）。
+
+在类或接口类型（_ClassOrInterfaceType_）中，每个标识符都被归类为包名或类型名。归类为类型名的标识符可以带有注解（_Annotation_）。如果类或接口类型（_ClassOrInterfaceType_）为`T.id`的形式（后面可选择性地跟随类型参数），那么`id`必须是`T`的一个可访问成员类型的简单名称，否则会出现编译时错误。该类或接口类型表示该成员类型。
+
+#### Objects
+
+对象是类实例或数组。
+
+引用值（通常简称为引用）是指向这些对象的指针，还有一个特殊的空引用，它不指向任何对象。
+
+类实例是通过类实例创建表达式显式创建的。
+
+数组由数组创建表达式显式创建。
+
+当字符串连接运算符`+`在非常量表达式中使用时，会隐式创建一个新的类实例，从而产生一个新的 `String` 类型的对象。
+
+当数组初始化表达式被执行时，会隐式创建一个新的数组对象；这种情况可能发生在类或接口被初始化时、创建类的新实例时，或者执行局部变量声明语句时。
+
+`Boolean`、`Byte`、`Short`、`Character`、`Integer`、`Long`、`Float`和`Double`类型的新对象，可能会通过装箱转换隐式创建。
+
+```java
+class Point {
+    int x, y;
+    Point() { System.out.println("default"); }
+    Point(int x, int y) { this.x = x; this.y = y; }
+    // A Point instance is explicitly created at class initialization time:
+    static Point origin = new Point(0, 0);
+    // A String can be implicitly create by a + operator:
+    public String toString() { return "(" + x + ", " + y + ")"; }
+}
+public class Test2 {
+    public static void main(String[] args) {
+        // A Point is explicitly created using newInstance:
+        Point p = null;
+        try {
+            p = (Point)Class.forName("Point").newInstance();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        // An array is implicitly created by an array constructor:
+        Point[] a = { new Point(0,0), new Point(1,1) };
+        // Strings are implicitly created by + operators:
+        System.out.println("p: " + p);
+        System.out.println("a: { " + a[0] + ", " + a[1] + " }");
+        // An array is explicitly created by an array creation expression:
+        String[] sa = new String[2]; 
+        sa[0] = "he"; sa[1] = "llo";
+        System.out.println(sa[0] + sa[1]);
+    }
+}
+```
+
+```plainText
+default
+p: (0, 0)
+a: { (0, 0), (1, 1) }
+hello
+```
+
+对对象引用的运算符包括：
+
+- 使用`a qualified name`或`field access expression`对字段进行访问
+- 方法调用`method invocation`
+- 强制类型转换运算符`cast`
+- 字符串连接运算符`+`，当它有一个 `String` 操作数和一个引用时，会通过调用被引用对象的 `toString` 方法将该引用转换为 `String`（如果引用或 `toString` 的结果为 `null` 引用，则使用 `"null"`），然后生成一个新创建的 `String`，它是这两个字符串的连接。
+- `instanceof`运算符 
+- 引用相等运算符`==`和`!=`
+- 条件运算符`? :`
+
+可能存在对同一对象的多个引用。大多数对象都有状态，这些状态存储在作为类实例的对象的字段中，或者存储在作为数组对象组件的变量中。如果两个变量包含对同一对象的引用，那么可以使用其中一个变量对该对象的引用来修改对象的状态，然后可以通过另一个变量中的引用观察到更改后的状态。
+
+```java
+class Value { int val; }
+public class Test {
+    public static void main(String[] args) {
+        int i1 = 3;
+        int i2 = i1;
+        i2 = 4;
+        System.out.print("i1==" + i1);
+        System.out.println(" but i2==" + i2);
+        Value v1 = new Value();
+        v1.val = 5;
+        Value v2 = v1;
+        v2.val = 6;
+        System.out.print("v1.val==" + v1.val);
+        System.out.println(" and v2.val==" + v2.val);
+    }
+}
+```
+
+```plainText
+i1==3 but i2==4
+v1.val==6 and v2.val==6
+```
+
+每个对象都与一个`monitor`相关联，同步方法和同步语句使用该`monitor`来控制多个线程对状态的并发访问。
+
+#### Object类
+
+`Object`类是所有其他类的父类（超类）。
+
+所有类和数组类型都继承了`Object`类的方法，总结如下：
+
+- 方法`clone`用于创建对象的副本
+- 方法`equals`定义了一种对象相等性的概念，该概念基于值的比较，而非引用的比较。
+- 方法`finalize`恰好在对象被销毁之前运行（一般不会用这玩意）
+- 方法`getClass`返回表示该对象所属类的`Class`对象。每个引用类型都有一个类对象。例如，它可用于发现类的完全限定名、其成员、其直接超类以及它实现的任何接口。`getClass`方法调用表达式的类型为`Class<? extends |T|>`，其中`T`是被`getClass`查找的类或接口，`|T|`表示`T`的擦除。 声明为`synchronized`的类方法将在与该类的`Class`对象关联的`monitor`上进行同步。
+- `hashCode`方法与`equals`方法一起，在诸如`java.util.HashMap`这样的哈希表中非常有用。
+- `wait`、`notify`和`notifyAll`方法用于使用线程的并发编程。
+- 方法`toString`返回对象的字符串表示形式。
+
+#### String类
+
+String类的实例表示Unicode码点序列。
+
+字符串对象的值是（不可变）常量。
+
+字符串字面值是对`String`类实例的引用。
+
+当结果不是常量表达式时，字符串连接运算符`+`会隐式创建一个新的`String`对象。
+
+#### 当引用类型相同时
+
+如果两种引用类型具有相同的二进制名称，并且它们的类型参数（如果有）相同（递归应用此定义），那么这两种引用类型在编译时的类型相同。
+
+当两个引用类型相同时，有时会说它们是同一个类或同一个接口。
+
+在运行时，具有相同二进制名称的几种引用类型可能会由不同的类加载器同时加载。这些类型可能代表也可能不代表相同的类型声明。即使两种这样的类型确实代表相同的类型声明，它们也被视为不同的类型。
+
+如果满足以下条件，则两种引用类型为相同的运行时类型：
+
+- 它们要么都是类类型，要么都是接口类型，由同一个类加载器定义，并且具有相同的二进制名称，在这种情况下，它们有时被称为相同的运行时类或相同的运行时接口。
+- 它们都是数组类型，且其组件类型具有相同的运行时类型。
+
+### 类型变量（Type Variables）
+
+类型变量是一种未限定的标识符，在类、接口、方法和构造函数体中用作类型。
+
+类型变量是通过声明泛型类、接口、方法或构造函数的类型参数引入的。
+
+_TypeParameter_:
+
+​	{_TypeParameterModifier_} _Identifier_ [_TypeBound_]
+
+_TypeParameterModifier_:
+
+​	_Annotation_
+
+_TypeBound_:
+
+​	extends _TypeVariable_
+
+​	extends _ClassOrInterfaceType_ {_AdditionalBound_}
+
+_AdditionalBound_:
+
+​	& _InterfaceType_
+
+每个声明为类型参数（_TypeParameter_）的类型变量都有一个边界。如果没有为类型变量声明边界，则默认为`Object`。如果声明了边界，则它由以下两者之一组成：
+
+- 单个类型变量`T`或者
+- 一个类或接口类型`T`，其后可能跟有接口类型`I1&...&In`
+
+如果`I1...In`中有类型是类类型或类型变量的，则会出现编译时错误。边界的所有组成类型的擦除必须两两不同，否则会出现编译时错误。
+
+类型变量不能同时为同一个泛型接口的两种不同参数化形式的接口类型的子类型，否则会发生编译时错误。
+
+边界中类型的顺序之所以重要，仅在于类型变量的擦除是由其边界中的第一个类型决定的，并且类类型或类型变量只能出现在第一个位置。
+
+类型变量`x`（其约束为`T & I1 & ... &In`）的成员，是在声明该类型变量之处出现的交集类型``T & I1 & ... &In`的成员。
+
+```java
+class C {
+    public void mCPublic() { }
+    protected void mCProtected() { } // 同包或者不同包的显示继承的子类中可访问
+    void mCPackage() { } // 同包可访问
+    private void mCPrivate() { }
+}
+interface I {
+    void mI();
+}
+class CT extends C implements I {
+    public void mI() { }
+}
+public class Test {
+    
+    <T extends C & I> void test(T t) {
+        t.mI(); // 这里实际上先做了一个类型转换检查，将t转换成I类型，再调用的对应方法
+        t.mCPublic();
+        t.mCProtected(); // 如果C在其它包，这里也会产生编译期错误
+        t.mCPackage(); // 如果C在其它包，这里也会产生编译期错误
+        t.mCPrivate(); // 这里会产生编译期错误
+    }
+}
+```
 
